@@ -21,8 +21,6 @@ The rapid development of **spatial cloud-native technologies** is opening doors 
 **Overture Maps** — driven by Amazon, Meta, and Microsoft — are already processing **petabytes of geospatial data** at
 unprecedented speed, largely due to their adoption of cloud-native architectures.
 
----
-
 ## Project Description
 
 **doppa** explores how cloud-native technologies can be applied to Norwegian geospatial data while meeting key
@@ -39,15 +37,11 @@ A central part of the project is to:
 - Explore how the **work of Overture Maps** can be adapted to a Norwegian context.
 - Build a **technical prototype** to demonstrate the potential of this approach.
 
----
-
 ## Goals
 
 - Reduce **latency, cost, and complexity** in accessing national geospatial data.
 - Provide a **modern, developer-friendly platform** for spatial analytics and applications.
 - Lay the groundwork for a **scalable and interoperable geospatial infrastructure** in Norway.
-
----
 
 ## Resources
 
