@@ -1,1 +1,1 @@
-﻿from .config import Enum
+﻿from .config import Config
