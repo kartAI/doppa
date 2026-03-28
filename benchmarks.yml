@@ -123,3 +123,13 @@ experiments:
 #    image: doppaacr.azurecr.io/vector-tiles-100k-vmt:latest
 #    cpu: 4
 #    memory_gb: 16
+
+  - id: point-in-polygon-lookup-duckdb
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-duckdb:latest
+    cpu: 4
+    memory_gb: 16
+
+  - id: point-in-polygon-lookup-postgis
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-postgis:latest
+    cpu: 4
+    memory_gb: 16

@@ -14,6 +14,7 @@ from src.presentation.entrypoints import (
     spatial_aggregation_grid_duckdb, spatial_aggregation_grid_postgis,
     attribute_spatial_compound_filter_duckdb, attribute_spatial_compound_filter_postgis,
     ordered_range_query_duckdb, ordered_range_query_postgis,
+    point_in_polygon_lookup_duckdb, point_in_polygon_lookup_postgis,
 )
 
 
@@ -96,6 +97,12 @@ def benchmark_runner() -> None:
             return
         case "ordered-range-query-postgis":
             ordered_range_query_postgis()
+            return
+        case "point-in-polygon-lookup-duckdb":
+            point_in_polygon_lookup_duckdb()
+            return
+        case "point-in-polygon-lookup-postgis":
+            point_in_polygon_lookup_postgis()
             return
         case "setup-framework":
             setup_benchmarking_framework()

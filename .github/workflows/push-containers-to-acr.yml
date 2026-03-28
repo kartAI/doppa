@@ -122,6 +122,14 @@ jobs:
             image: ordered-range-query-postgis
             display_name: PostGIS Ordered Range Query with LIMIT
 
+          - service: point-in-polygon-lookup-duckdb
+            image: point-in-polygon-lookup-duckdb
+            display_name: DuckDB Point-in-Polygon Lookup
+
+          - service: point-in-polygon-lookup-postgis
+            image: point-in-polygon-lookup-postgis
+            display_name: PostGIS Point-in-Polygon Lookup
+
 
     steps:
       - name: Checkout code

@@ -243,6 +243,24 @@ services:
     image: ordered-range-query-postgis:latest
     command: python benchmark_runner.py --script-id ordered-range-query-postgis --benchmark-run 1 --run-id ABCDEF
 
+  point-in-polygon-lookup-duckdb:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: point-in-polygon-lookup-duckdb:latest
+    command: python benchmark_runner.py --script-id point-in-polygon-lookup-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  point-in-polygon-lookup-postgis:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: point-in-polygon-lookup-postgis:latest
+    command: python benchmark_runner.py --script-id point-in-polygon-lookup-postgis --benchmark-run 1 --run-id ABCDEF
+
   vmt-api-server:
     env_file:
       - .env
