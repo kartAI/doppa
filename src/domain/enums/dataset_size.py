@@ -10,13 +10,13 @@ class DatasetSize(Enum):
     def clones_per_polygon(self) -> int:
         """
         Number of synthetic clones generated per source polygon when synthesizing this dataset size.
-        `SMALL` is a passthrough (no clones), `MEDIUM` produces 7 clones per source polygon (target ~40M total),
-        and `LARGE` produces 19 clones per source polygon (target ~100M total).
+        `SMALL` is a passthrough (no clones), `MEDIUM` produces 9 clones per source polygon (target ~40M total),
+        and `LARGE` produces 23 clones per source polygon (target ~100M total).
         """
         match self:
             case DatasetSize.SMALL:
                 return 0
             case DatasetSize.MEDIUM:
-                return 7
+                return 9
             case DatasetSize.LARGE:
-                return 19
+                return 23
