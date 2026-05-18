@@ -9,8 +9,13 @@ from src import Config
 from src.application.common import logger
 from src.application.contracts import IDatabricksService
 from src.application.dtos import DatabricksRunResult
-
-_TERMINAL_STATES = {"TERMINATED", "SKIPPED", "INTERNAL_ERROR"}
+from src.domain.enums import (
+    DatabricksClusterState,
+    DatabricksLibraryStatus,
+    DatabricksRunLifecycleState,
+    DatabricksRunResultState,
+    DatasetSize,
+)
 
 
 class DatabricksService(IDatabricksService):
@@ -36,14 +41,233 @@ class DatabricksService(IDatabricksService):
             "Content-Type": "application/json",
         }
 
-    def submit_and_wait(self, num_workers: int) -> DatabricksRunResult:
-        self._upload_notebook()
-        run_id = self._submit_run(num_workers)
+    def create_cluster(self, num_workers: int) -> str:
+        cluster_id = self._create_cluster(num_workers=num_workers)
+        try:
+            self._install_libraries(cluster_id=cluster_id)
+            self._wait_for_cluster_running(cluster_id=cluster_id)
+            self._wait_for_libraries_installed(cluster_id=cluster_id)
+            self._upload_notebook()
+        except Exception:
+            logger.warning(
+                f"Cluster {cluster_id} provisioning failed before it was returned to caller. "
+                f"Terminating to avoid orphan resources."
+            )
+            try:
+                self.terminate_cluster(cluster_id=cluster_id)
+            except Exception as termination_exc:
+                logger.error(
+                    f"Failed to terminate partially-provisioned cluster {cluster_id}: "
+                    f"{termination_exc}"
+                )
+            raise
         logger.info(
-            f"Submitted Databricks run {run_id} with {num_workers} worker(s). Polling for completion."
+            f"Cluster {cluster_id} ready with {num_workers} worker(s). "
+            f"Libraries installed, notebook uploaded."
+        )
+        return cluster_id
+
+    def submit_to_existing_cluster(
+        self, cluster_id: str, num_workers: int, dataset_size: DatasetSize
+    ) -> DatabricksRunResult:
+        run_id = self._submit_run(
+            cluster_id=cluster_id,
+            num_workers=num_workers,
+            dataset_size=dataset_size,
+        )
+        logger.info(
+            f"Submitted Databricks run {run_id} on cluster {cluster_id} "
+            f"against dataset size '{dataset_size.value}'. Polling for completion."
         )
         task_run_id = self._wait_for_run(run_id)
         return self._fetch_notebook_output(task_run_id)
+
+    def terminate_cluster(self, cluster_id: str) -> None:
+        response = requests.post(
+            f"{self._host}/api/2.1/clusters/permanent-delete",
+            headers=self._headers,
+            json={"cluster_id": cluster_id},
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+        )
+        if not response.ok:
+            raise RuntimeError(
+                f"Failed to permanently delete cluster {cluster_id}: "
+                f"{response.status_code}: {response.text}"
+            )
+        logger.info(f"Permanently deleted cluster {cluster_id}.")
+
+    def _create_cluster(self, num_workers: int) -> str:
+        single_user_name = self._get_current_user_name()
+        payload = {
+            "cluster_name": f"doppa-national-scale-spatial-join-{num_workers}-nodes",
+            "spark_version": Config.DATABRICKS_SPARK_VERSION,
+            "node_type_id": Config.DATABRICKS_NODE_TYPE_ID,
+            "num_workers": num_workers,
+            "data_security_mode": "LEGACY_SINGLE_USER",
+            "single_user_name": single_user_name,
+            "spark_conf": {
+                "spark.driver.memory": Config.DATABRICKS_DRIVER_MEMORY,
+                "spark.driver.memoryOverhead": Config.DATABRICKS_DRIVER_MEMORY_OVERHEAD,
+                f"spark.hadoop.fs.azure.account.auth.type.{Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME}.dfs.core.windows.net": "SharedKey",
+                f"spark.hadoop.fs.azure.account.key.{Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME}.dfs.core.windows.net": Config.AZURE_BLOB_STORAGE_ACCOUNT_KEY,
+            },
+        }
+        response = requests.post(
+            f"{self._host}/api/2.1/clusters/create",
+            headers=self._headers,
+            json=payload,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+        )
+        if not response.ok:
+            raise RuntimeError(
+                f"Databricks clusters/create failed with {response.status_code}: {response.text}"
+            )
+        cluster_id: str = str(response.json()["cluster_id"])
+        logger.info(
+            f"Created cluster {cluster_id} with {num_workers} worker(s) "
+            f"(LEGACY_SINGLE_USER mode, single_user_name='{single_user_name}')."
+        )
+        return cluster_id
+
+    def _get_current_user_name(self) -> str:
+        """Resolve the identity attached to the Databricks PAT.
+
+        Workspaces that enforce Unity Catalog reject /clusters/create requests without an
+        explicit ``data_security_mode``. ``SINGLE_USER`` mode requires ``single_user_name``,
+        which must match the caller's identity, so we look it up from SCIM ``/Me``.
+        """
+        response = requests.get(
+            f"{self._host}/api/2.0/preview/scim/v2/Me",
+            headers=self._headers,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+        )
+        if not response.ok:
+            raise RuntimeError(
+                f"Failed to resolve current Databricks identity via SCIM /Me: "
+                f"{response.status_code}: {response.text}"
+            )
+        data = response.json()
+        user_name = data.get("userName")
+        if not user_name:
+            raise RuntimeError(
+                f"SCIM /Me did not return a userName. Payload: {data!r}"
+            )
+        return user_name
+
+    def _install_libraries(self, cluster_id: str) -> None:
+        payload = {
+            "cluster_id": cluster_id,
+            "libraries": [
+                {"maven": {"coordinates": Config.DATABRICKS_SEDONA_MAVEN_COORDINATES}},
+                {"pypi": {"package": Config.DATABRICKS_SEDONA_PYPI_PACKAGE}},
+                {"pypi": {"package": Config.DATABRICKS_GEOPANDAS_PYPI_PACKAGE}},
+            ],
+        }
+        response = requests.post(
+            f"{self._host}/api/2.0/libraries/install",
+            headers=self._headers,
+            json=payload,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+        )
+        if not response.ok:
+            raise RuntimeError(
+                f"Databricks libraries/install failed for cluster {cluster_id}: "
+                f"{response.status_code}: {response.text}"
+            )
+        logger.info(f"Requested library install on cluster {cluster_id}.")
+
+    def _wait_for_cluster_running(self, cluster_id: str) -> None:
+        while True:
+            try:
+                response = requests.get(
+                    f"{self._host}/api/2.1/clusters/get",
+                    headers=self._headers,
+                    params={"cluster_id": cluster_id},
+                    timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+                )
+                response.raise_for_status()
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                logger.warning(
+                    f"Transient network error polling cluster {cluster_id}: {exc}. "
+                    f"Retrying in {Config.DATABRICKS_POLL_INTERVAL_SECONDS}s."
+                )
+                time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
+                continue
+            data = response.json()
+            state = data.get("state", "")
+            logger.info(f"Cluster {cluster_id}: state={state}")
+            if state == DatabricksClusterState.RUNNING.value:
+                return
+            if state in DatabricksClusterState.non_running_terminal_values():
+                state_message = data.get("state_message", "")
+                raise RuntimeError(
+                    f"Cluster {cluster_id} reached unexpected state '{state}' "
+                    f"before RUNNING. State message: {state_message}"
+                )
+            time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
+
+    def _wait_for_libraries_installed(self, cluster_id: str) -> None:
+        while True:
+            try:
+                response = requests.get(
+                    f"{self._host}/api/2.0/libraries/cluster-status",
+                    headers=self._headers,
+                    params={"cluster_id": cluster_id},
+                    timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+                )
+                response.raise_for_status()
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                logger.warning(
+                    f"Transient network error polling library status on cluster {cluster_id}: {exc}. "
+                    f"Retrying in {Config.DATABRICKS_POLL_INTERVAL_SECONDS}s."
+                )
+                time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
+                continue
+            data = response.json()
+            statuses = data.get("library_statuses", [])
+            if not statuses:
+                logger.info(
+                    f"Cluster {cluster_id}: no library statuses reported yet. Waiting."
+                )
+                time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
+                continue
+
+            summary = ", ".join(
+                f"{self._library_label(s.get('library', {}))}={s.get('status', '')}"
+                for s in statuses
+            )
+            logger.info(f"Cluster {cluster_id} library status: {summary}")
+
+            failed = [
+                s
+                for s in statuses
+                if s.get("status", "") in DatabricksLibraryStatus.terminal_failure_values()
+            ]
+            if failed:
+                details = "; ".join(
+                    f"{self._library_label(s.get('library', {}))} -> {s.get('status', '')} "
+                    f"({s.get('messages', [])})"
+                    for s in failed
+                )
+                raise RuntimeError(
+                    f"One or more libraries failed to install on cluster {cluster_id}: {details}"
+                )
+
+            if all(
+                s.get("status", "") == DatabricksLibraryStatus.INSTALLED.value
+                for s in statuses
+            ):
+                return
+
+            time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
+
+    @staticmethod
+    def _library_label(library: dict) -> str:
+        if "maven" in library:
+            return library["maven"].get("coordinates", "maven:?")
+        if "pypi" in library:
+            return library["pypi"].get("package", "pypi:?")
+        return next(iter(library.keys()), "library")
 
     def _upload_notebook(self) -> None:
         folder = str(Path(Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH).parent)
@@ -51,7 +275,7 @@ class DatabricksService(IDatabricksService):
             f"{self._host}/api/2.0/workspace/mkdirs",
             headers=self._headers,
             json={"path": folder},
-            timeout=30,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
         )
         if not mkdirs_response.ok:
             raise RuntimeError(
@@ -71,7 +295,7 @@ class DatabricksService(IDatabricksService):
                 "content": content,
                 "overwrite": True,
             },
-            timeout=30,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
         )
         if not response.ok:
             raise RuntimeError(
@@ -81,9 +305,11 @@ class DatabricksService(IDatabricksService):
             f"Uploaded notebook to '{Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH}'."
         )
 
-    def _submit_run(self, num_workers: int) -> str:
+    def _submit_run(
+        self, cluster_id: str, num_workers: int, dataset_size: DatasetSize
+    ) -> str:
         payload = {
-            "run_name": f"national-scale-spatial-join-{num_workers}-nodes",
+            "run_name": f"national-scale-spatial-join-{num_workers}-nodes-{dataset_size.value}",
             "tasks": [
                 {
                     "task_key": "spatial-join",
@@ -94,26 +320,10 @@ class DatabricksService(IDatabricksService):
                             "account_name": Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME,
                             "release": Config.BENCHMARK_DOPPA_DATA_RELEASE,
                             "municipalities_file": Config.DATABRICKS_MUNICIPALITIES_FILE,
+                            "dataset_size": dataset_size.value,
                         },
                     },
-                    "new_cluster": {
-                        "spark_version": Config.DATABRICKS_SPARK_VERSION,
-                        "node_type_id": Config.DATABRICKS_NODE_TYPE_ID,
-                        "num_workers": num_workers,
-                        "spark_conf": {
-                            "spark.driver.memory": Config.DATABRICKS_DRIVER_MEMORY,
-                            "spark.driver.memoryOverhead": Config.DATABRICKS_DRIVER_MEMORY_OVERHEAD,
-                        },
-                    },
-                    "libraries": [
-                        {
-                            "maven": {
-                                "coordinates": Config.DATABRICKS_SEDONA_MAVEN_COORDINATES
-                            }
-                        },
-                        {"pypi": {"package": Config.DATABRICKS_SEDONA_PYPI_PACKAGE}},
-                        {"pypi": {"package": "geopandas==0.14.4"}},
-                    ],
+                    "existing_cluster_id": cluster_id,
                 }
             ],
         }
@@ -122,7 +332,7 @@ class DatabricksService(IDatabricksService):
             f"{self._host}/api/2.1/jobs/runs/submit",
             headers=self._headers,
             json=payload,
-            timeout=30,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
         )
         if not response.ok:
             raise RuntimeError(
@@ -144,7 +354,7 @@ class DatabricksService(IDatabricksService):
                     f"{self._host}/api/2.1/jobs/runs/get",
                     headers=self._headers,
                     params={"run_id": run_id},
-                    timeout=30,
+                    timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
                 )
                 response.raise_for_status()
             except (requests.ConnectionError, requests.Timeout) as exc:
@@ -165,8 +375,8 @@ class DatabricksService(IDatabricksService):
                 state_msg += f", result_state={result_state}"
             logger.info(f"Run {run_id}: {state_msg}")
 
-            if life_cycle_state in _TERMINAL_STATES:
-                if result_state != "SUCCESS":
+            if life_cycle_state in DatabricksRunLifecycleState.terminal_values():
+                if result_state != DatabricksRunResultState.SUCCESS.value:
                     raise RuntimeError(
                         f"Databricks run {run_id} finished with result_state='{result_state}'. "
                         f"State message: {state.get('state_message', '')}"
@@ -204,7 +414,7 @@ class DatabricksService(IDatabricksService):
             f"{self._host}/api/2.1/jobs/runs/get-output",
             headers=self._headers,
             params={"run_id": run_id},
-            timeout=30,
+            timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
         )
         if not response.ok:
             raise RuntimeError(
