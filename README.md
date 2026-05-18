@@ -175,10 +175,10 @@ Files are written as GeoParquet 1.1.0 with:
 | Size     | Target row count | Source                                                                                                  |
 |----------|------------------|---------------------------------------------------------------------------------------------------------|
 | `small`  | ~5M              | Conflation of OSM + FKB. Written directly by `TestDatasetService` during setup.                         |
-| `medium` | ~40M             | `DatasetSynthesisService`: 7 clones per source polygon (translate + rotate + jitter, drop invalid).     |
-| `large`  | ~100M            | `DatasetSynthesisService`: 19 clones per source polygon.                                                |
+| `medium` | ~40M             | `DatasetSynthesisService`: 9 clones per source polygon (translate + rotate + jitter, drop invalid).     |
+| `large`  | ~100M            | `DatasetSynthesisService`: 23 clones per source polygon.                                                |
 
-Per-polygon clone counts are exposed on the enum (`DatasetSize.MEDIUM.clones_per_polygon == 7`). Synthetic clones
+Per-polygon clone counts are exposed on the enum (`DatasetSize.MEDIUM.clones_per_polygon == 9`). Synthetic clones
 carry the same schema as originals, with non-geometry attributes (e.g. `building_type`, `building_id`, `source`)
 left `NULL`. The `partition_key` is recomputed for clones from the new centroid.
 
@@ -507,8 +507,8 @@ A full `setup_benchmarking_framework` run on real Azure resources is dominated b
 | Step | Description                              | Approximate runtime |
 |------|------------------------------------------|---------------------|
 | 1    | `test_dataset_service.run_pipeline()`    | 25–55 min           |
-| 2    | Synthesize medium (~40M rows)            | 25–40 min           |
-| 3    | Synthesize large (~100M rows)            | 50–90 min           |
+| 2    | Synthesize medium (~40M rows)            | 30–50 min           |
+| 3    | Synthesize large (~100M rows)            | 60–110 min          |
 | 4    | Postgres seed (small + medium + large)   | 3.5–7 hr            |
 | 5    | Shapefile copy                           | 3–5 min             |
 
