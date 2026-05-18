@@ -14,10 +14,12 @@ def run_databricks_national_scale_spatial_join(
     (warmup + timed iterations) against it for the given dataset size, then terminate the
     cluster.
 
-    Cluster provisioning happens outside the ``@monitor`` timing window so reported elapsed
-    time and reported cost both cover the same span: warmup + timed iterations on a warm
-    engine. ``query_id`` encodes ``num_workers`` and (when not ``SMALL``) ``dataset_size``
-    so results are keyed unambiguously without renaming existing small-dataset rows.
+    Cluster provisioning happens outside the ``@monitor`` timing window. Warmup runs
+    execute on the same cluster but before ``@monitor`` opens its cost window, so both
+    reported elapsed time and reported cost cover the timed iterations only, on an
+    already-warm engine. ``query_id`` encodes ``num_workers`` and (when not ``SMALL``)
+    ``dataset_size`` so results are keyed unambiguously without renaming existing
+    small-dataset rows.
     """
     cluster_id = databricks_service.create_cluster(num_workers=num_workers)
     try:

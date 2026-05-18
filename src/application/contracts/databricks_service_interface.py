@@ -32,7 +32,8 @@ class IDatabricksService(ABC):
 
         :param cluster_id: The cluster ID returned by :meth:`create_cluster`.
         :param num_workers: Number of worker nodes on the cluster. Used only to label the
-            Databricks run (e.g. ``national-scale-spatial-join-8-nodes``).
+            Databricks run (e.g. ``national-scale-spatial-join-8-nodes-small``, where the
+            trailing token is ``dataset_size.value``).
         :param dataset_size: Which buildings dataset partition the notebook should read
             (``size=small|medium|large`` under the release path).
         :return: DatabricksRunResult with `execution_duration_s`, `cardinality`, and the six

@@ -133,8 +133,9 @@ class DatabricksService(IDatabricksService):
         """Resolve the identity attached to the Databricks PAT.
 
         Workspaces that enforce Unity Catalog reject /clusters/create requests without an
-        explicit ``data_security_mode``. ``SINGLE_USER`` mode requires ``single_user_name``,
-        which must match the caller's identity, so we look it up from SCIM ``/Me``.
+        explicit ``data_security_mode``. Both ``SINGLE_USER`` and ``LEGACY_SINGLE_USER``
+        (the mode used here) require ``single_user_name`` to match the caller's identity,
+        so we look it up from SCIM ``/Me``.
         """
         response = requests.get(
             f"{self._host}/api/2.0/preview/scim/v2/Me",
