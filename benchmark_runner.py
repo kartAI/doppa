@@ -1,5 +1,6 @@
 ﻿import argparse
 from typing import Optional
+from src.domain.enums import DatasetSize
 from src.presentation.configuration import initialize_dependencies
 from src.presentation.entrypoints import (
     db_scan_blob_storage,
@@ -138,13 +139,19 @@ def benchmark_runner() -> None:
             national_scale_spatial_join_postgis()
             return
         case "national-scale-spatial-join-databricks-2-nodes":
-            national_scale_spatial_join_databricks_2_nodes()
+            national_scale_spatial_join_databricks_2_nodes(
+                dataset_size=DatasetSize.LARGE
+            )
             return
         case "national-scale-spatial-join-databricks-4-nodes":
-            national_scale_spatial_join_databricks_4_nodes()
+            national_scale_spatial_join_databricks_4_nodes(
+                dataset_size=DatasetSize.LARGE
+            )
             return
         case "national-scale-spatial-join-databricks-8-nodes":
-            national_scale_spatial_join_databricks_8_nodes()
+            national_scale_spatial_join_databricks_8_nodes(
+                dataset_size=DatasetSize.LARGE
+            )
             return
         case "setup-framework":
             setup_benchmarking_framework()
