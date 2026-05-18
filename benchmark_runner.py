@@ -140,17 +140,17 @@ def benchmark_runner() -> None:
             return
         case "national-scale-spatial-join-databricks-2-nodes":
             national_scale_spatial_join_databricks_2_nodes(
-                dataset_size=DatasetSize.LARGE
+                dataset_size=DatasetSize.SMALL
             )
             return
         case "national-scale-spatial-join-databricks-4-nodes":
             national_scale_spatial_join_databricks_4_nodes(
-                dataset_size=DatasetSize.LARGE
+                dataset_size=DatasetSize.SMALL
             )
             return
         case "national-scale-spatial-join-databricks-8-nodes":
             national_scale_spatial_join_databricks_8_nodes(
-                dataset_size=DatasetSize.LARGE
+                dataset_size=DatasetSize.SMALL
             )
             return
         case "setup-framework":
