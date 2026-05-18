@@ -107,7 +107,7 @@ class Config:
     BENCHMARK_WARMUP_ITERATIONS: int = 5
     BENCHMARK_ITERATIONS: int = 100
     BENCHMARK_METADATA_BLOB_NAME: str = "benchmark_metadata.parquet"
-    BENCHMARK_DOPPA_DATA_RELEASE: str = "2026-04-02.0"
+    BENCHMARK_DOPPA_DATA_RELEASE: str = "2026-05-16.1"
 
     INGESTION_DELAY_SECONDS: int = 600
 
@@ -121,12 +121,14 @@ class Config:
         "DATABRICKS_NODE_TYPE_ID", "Standard_D4s_v3"
     )
     DATABRICKS_POLL_INTERVAL_SECONDS: int = 30
+    DATABRICKS_HTTP_TIMEOUT_SECONDS: int = 30
     DATABRICKS_DRIVER_MEMORY: str = "9g"
     DATABRICKS_DRIVER_MEMORY_OVERHEAD: str = "512m"
     DATABRICKS_SEDONA_MAVEN_COORDINATES: str = (
         "org.apache.sedona:sedona-spark-shaded-3.5_2.12:1.7.1"
     )
     DATABRICKS_SEDONA_PYPI_PACKAGE: str = "apache-sedona==1.7.1"
+    DATABRICKS_GEOPANDAS_PYPI_PACKAGE: str = "geopandas==0.14.4"
     DATABRICKS_LOCAL_SCRIPT_PATH: str = (
         "src/presentation/databricks/national_scale_spatial_join.py"
     )
