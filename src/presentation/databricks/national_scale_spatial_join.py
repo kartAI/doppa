@@ -34,6 +34,7 @@ account_key = dbutils.widgets.get("account_key")
 account_name = dbutils.widgets.get("account_name")
 release = dbutils.widgets.get("release")
 municipalities_file = dbutils.widgets.get("municipalities_file")
+dataset_size = dbutils.widgets.get("dataset_size")
 
 # COMMAND ----------
 
@@ -48,7 +49,7 @@ sedona = SedonaContext.create(spark)
 
 buildings_path = (
     f"abfss://data@{account_name}.dfs.core.windows.net"
-    f"/release/{release}/theme=buildings/region=*/*.parquet"
+    f"/release/{release}/size={dataset_size}/theme=buildings/region=*/*.parquet"
 )
 municipalities_path = (
     f"abfss://metadata@{account_name}.dfs.core.windows.net"
