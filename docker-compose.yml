@@ -52,33 +52,6 @@ services:
     image: point-in-polygon-lookup-local:latest
     command: python benchmark_runner.py --script-id point-in-polygon-lookup-local --benchmark-run 1 --run-id ABCDEF
 
-  attribute-spatial-compound-filter-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: attribute-spatial-compound-filter-duckdb:latest
-    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  attribute-spatial-compound-filter-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: attribute-spatial-compound-filter-postgis:latest
-    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-postgis --benchmark-run 1 --run-id ABCDEF
-
-  attribute-spatial-compound-filter-local:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: attribute-spatial-compound-filter-local:latest
-    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-local --benchmark-run 1 --run-id ABCDEF
-
   knn-search-duckdb:
     env_file:
       - .env
@@ -208,6 +181,87 @@ services:
       dockerfile: .docker/Query.Dockerfile
     image: national-scale-spatial-join-databricks-partitioned-8-nodes:latest
     command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-8-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-broadcast-12-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-broadcast-12-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-broadcast-12-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-broadcast-16-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-broadcast-16-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-broadcast-16-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-partitioned-12-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-partitioned-12-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-12-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-partitioned-16-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-partitioned-16-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-16-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-default-2-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-default-2-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-default-2-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-default-4-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-default-4-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-default-4-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-default-8-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-default-8-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-default-8-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-default-12-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-default-12-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-default-12-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-default-16-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-default-16-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-default-16-nodes --benchmark-run 1 --run-id ABCDEF
 
   vmt-api-server:
     env_file:

@@ -25,9 +25,6 @@ from src.presentation.entrypoints import (
     vector_tiles_100k_pmtiles,
     spatial_aggregation_grid_duckdb,
     spatial_aggregation_grid_postgis,
-    attribute_spatial_compound_filter_duckdb,
-    attribute_spatial_compound_filter_local,
-    attribute_spatial_compound_filter_postgis,
     knn_search_duckdb,
     knn_search_local,
     knn_search_postgis,
@@ -132,15 +129,6 @@ def benchmark_runner() -> None:
             return
         case "spatial-aggregation-grid-postgis":
             spatial_aggregation_grid_postgis()
-            return
-        case "attribute-spatial-compound-filter-duckdb":
-            attribute_spatial_compound_filter_duckdb()
-            return
-        case "attribute-spatial-compound-filter-local":
-            attribute_spatial_compound_filter_local()
-            return
-        case "attribute-spatial-compound-filter-postgis":
-            attribute_spatial_compound_filter_postgis()
             return
         case "knn-search-duckdb":
             knn_search_duckdb()

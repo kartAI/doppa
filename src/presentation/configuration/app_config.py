@@ -58,10 +58,6 @@ def initialize_dependencies(
             "src.presentation.entrypoints.spatial_aggregation_grid_duckdb",
             "src.presentation.entrypoints.spatial_aggregation_grid_postgis",
 
-            "src.presentation.entrypoints.attribute_spatial_compound_filter_duckdb",
-            "src.presentation.entrypoints.attribute_spatial_compound_filter_local",
-            "src.presentation.entrypoints.attribute_spatial_compound_filter_postgis",
-
             "src.presentation.entrypoints.knn_search_duckdb",
             "src.presentation.entrypoints.knn_search_local",
             "src.presentation.entrypoints.knn_search_postgis",
