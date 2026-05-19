@@ -18,230 +18,12 @@ services:
     image: container-orchestrator:latest
     command: python -m main
 
-  db-scan-blob-storage:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: db-scan-blob-storage:latest
-    command: python benchmark_runner.py --script-id db-scan-blob-storage --benchmark-run 1 --run-id ABCDEF
-
-  db-scan-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: db-scan-postgis:latest
-    command: python benchmark_runner.py --script-id db-scan-postgis --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-advanced-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-advanced-duckdb:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-advanced-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-advanced-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-advanced-postgis:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-advanced-postgis --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-simple-local:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-simple-local:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-simple-local --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-simple-blob-storage:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-simple-blob-storage:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-simple-blob-storage --benchmark-run 1 --run-id ABCDEF
-
-  vector-tiles-single-tile-pmtiles:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: vector-tiles-single-tile-pmtiles:latest
-    command: python benchmark_runner.py --script-id vector-tiles-single-tile-pmtiles --benchmark-run 1 --run-id ABCDEF
-
-  vector-tiles-single-tile-vmt:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: vector-tiles-single-tile-vmt:latest
-    command: python benchmark_runner.py --script-id vector-tiles-single-tile-vmt --benchmark-run 1 --run-id ABCDEF
-
-  vector-tiles-100k-pmtiles:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: vector-tiles-100k-pmtiles:latest
-    command: python benchmark_runner.py --script-id vector-tiles-100k-pmtiles --benchmark-run 1 --run-id ABCDEF
-
-  vector-tiles-100k-vmt:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: vector-tiles-100k-vmt:latest
-    command: python benchmark_runner.py --script-id vector-tiles-100k-vmt --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-neighborhood-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-neighborhood-duckdb:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-neighborhood-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-municipality-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-municipality-duckdb:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-municipality-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-county-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-county-duckdb:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-county-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-neighborhood-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-neighborhood-postgis:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-neighborhood-postgis --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-municipality-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-municipality-postgis:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-municipality-postgis --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-county-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-county-postgis:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-county-postgis --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-neighborhood-local:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-neighborhood-local:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-neighborhood-local --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-municipality-local:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-municipality-local:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-municipality-local --benchmark-run 1 --run-id ABCDEF
-
-  bbox-filtering-result-set-sizes-county-local:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: bbox-filtering-result-set-sizes-county-local:latest
-    command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-county-local --benchmark-run 1 --run-id ABCDEF
-
-  spatial-aggregation-grid-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: spatial-aggregation-grid-duckdb:latest
-    command: python benchmark_runner.py --script-id spatial-aggregation-grid-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  spatial-aggregation-grid-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: spatial-aggregation-grid-postgis:latest
-    command: python benchmark_runner.py --script-id spatial-aggregation-grid-postgis --benchmark-run 1 --run-id ABCDEF
-
-  attribute-spatial-compound-filter-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: attribute-spatial-compound-filter-duckdb:latest
-    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  attribute-spatial-compound-filter-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: attribute-spatial-compound-filter-postgis:latest
-    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-postgis --benchmark-run 1 --run-id ABCDEF
-
-  ordered-range-query-duckdb:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: ordered-range-query-duckdb:latest
-    command: python benchmark_runner.py --script-id ordered-range-query-duckdb --benchmark-run 1 --run-id ABCDEF
-
-  ordered-range-query-postgis:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Query.Dockerfile
-    image: ordered-range-query-postgis:latest
-    command: python benchmark_runner.py --script-id ordered-range-query-postgis --benchmark-run 1 --run-id ABCDEF
+  # =================================================================
+  # RQ1 — Single-machine query benchmarks
+  # One service per (query_type, engine). Dataset size is a runtime
+  # arg passed by main.py per experiment; the same image serves all
+  # size tiers.
+  # =================================================================
 
   point-in-polygon-lookup-duckdb:
     env_file:
@@ -261,6 +43,100 @@ services:
     image: point-in-polygon-lookup-postgis:latest
     command: python benchmark_runner.py --script-id point-in-polygon-lookup-postgis --benchmark-run 1 --run-id ABCDEF
 
+  point-in-polygon-lookup-local:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: point-in-polygon-lookup-local:latest
+    command: python benchmark_runner.py --script-id point-in-polygon-lookup-local --benchmark-run 1 --run-id ABCDEF
+
+  attribute-spatial-compound-filter-duckdb:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: attribute-spatial-compound-filter-duckdb:latest
+    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  attribute-spatial-compound-filter-postgis:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: attribute-spatial-compound-filter-postgis:latest
+    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-postgis --benchmark-run 1 --run-id ABCDEF
+
+  attribute-spatial-compound-filter-local:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: attribute-spatial-compound-filter-local:latest
+    command: python benchmark_runner.py --script-id attribute-spatial-compound-filter-local --benchmark-run 1 --run-id ABCDEF
+
+  knn-search-duckdb:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: knn-search-duckdb:latest
+    command: python benchmark_runner.py --script-id knn-search-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  knn-search-postgis:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: knn-search-postgis:latest
+    command: python benchmark_runner.py --script-id knn-search-postgis --benchmark-run 1 --run-id ABCDEF
+
+  knn-search-local:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: knn-search-local:latest
+    command: python benchmark_runner.py --script-id knn-search-local --benchmark-run 1 --run-id ABCDEF
+
+  bbox-filtering-duckdb:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: bbox-filtering-duckdb:latest
+    command: python benchmark_runner.py --script-id bbox-filtering-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  bbox-filtering-postgis:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: bbox-filtering-postgis:latest
+    command: python benchmark_runner.py --script-id bbox-filtering-postgis --benchmark-run 1 --run-id ABCDEF
+
+  bbox-filtering-local:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: bbox-filtering-local:latest
+    command: python benchmark_runner.py --script-id bbox-filtering-local --benchmark-run 1 --run-id ABCDEF
+
+  # =================================================================
+  # RQ2 — National-scale spatial join
+  # =================================================================
+
   national-scale-spatial-join-duckdb:
     env_file:
       - .env
@@ -279,32 +155,59 @@ services:
     image: national-scale-spatial-join-postgis:latest
     command: python benchmark_runner.py --script-id national-scale-spatial-join-postgis --benchmark-run 1 --run-id ABCDEF
 
-  national-scale-spatial-join-databricks-2-nodes:
+  national-scale-spatial-join-databricks-broadcast-2-nodes:
     env_file:
       - .env
     build:
       context: .
       dockerfile: .docker/Query.Dockerfile
-    image: national-scale-spatial-join-databricks-2-nodes:latest
-    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-2-nodes --benchmark-run 1 --run-id ABCDEF
+    image: national-scale-spatial-join-databricks-broadcast-2-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-broadcast-2-nodes --benchmark-run 1 --run-id ABCDEF
 
-  national-scale-spatial-join-databricks-4-nodes:
+  national-scale-spatial-join-databricks-broadcast-4-nodes:
     env_file:
       - .env
     build:
       context: .
       dockerfile: .docker/Query.Dockerfile
-    image: national-scale-spatial-join-databricks-4-nodes:latest
-    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-4-nodes --benchmark-run 1 --run-id ABCDEF
+    image: national-scale-spatial-join-databricks-broadcast-4-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-broadcast-4-nodes --benchmark-run 1 --run-id ABCDEF
 
-  national-scale-spatial-join-databricks-8-nodes:
+  national-scale-spatial-join-databricks-broadcast-8-nodes:
     env_file:
       - .env
     build:
       context: .
       dockerfile: .docker/Query.Dockerfile
-    image: national-scale-spatial-join-databricks-8-nodes:latest
-    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-8-nodes --benchmark-run 1 --run-id ABCDEF
+    image: national-scale-spatial-join-databricks-broadcast-8-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-broadcast-8-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-partitioned-2-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-partitioned-2-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-2-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-partitioned-4-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-partitioned-4-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-4-nodes --benchmark-run 1 --run-id ABCDEF
+
+  national-scale-spatial-join-databricks-partitioned-8-nodes:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: .docker/Query.Dockerfile
+    image: national-scale-spatial-join-databricks-partitioned-8-nodes:latest
+    command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-8-nodes --benchmark-run 1 --run-id ABCDEF
 
   vmt-api-server:
     env_file:
@@ -316,3 +219,242 @@ services:
       - "8000:8000"
     image: vmt-api-server:latest
     command: uvicorn src.presentation.endpoints.tile_server:app --host 0.0.0.0 --port 8000
+
+  # =================================================================
+  # Out-of-scope services (kept commented for easy re-enable).
+  # Mirrors the commented-out section at the bottom of benchmarks.yml.
+  # =================================================================
+
+  # db-scan-blob-storage:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: db-scan-blob-storage:latest
+  #   command: python benchmark_runner.py --script-id db-scan-blob-storage --benchmark-run 1 --run-id ABCDEF
+
+  # db-scan-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: db-scan-postgis:latest
+  #   command: python benchmark_runner.py --script-id db-scan-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-simple-local:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-simple-local:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-simple-local --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-simple-blob-storage:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-simple-blob-storage:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-simple-blob-storage --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-advanced-duckdb:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-advanced-duckdb:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-advanced-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-advanced-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-advanced-postgis:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-advanced-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # vector-tiles-single-tile-pmtiles:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: vector-tiles-single-tile-pmtiles:latest
+  #   command: python benchmark_runner.py --script-id vector-tiles-single-tile-pmtiles --benchmark-run 1 --run-id ABCDEF
+
+  # vector-tiles-single-tile-vmt:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: vector-tiles-single-tile-vmt:latest
+  #   command: python benchmark_runner.py --script-id vector-tiles-single-tile-vmt --benchmark-run 1 --run-id ABCDEF
+
+  # vector-tiles-100k-pmtiles:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: vector-tiles-100k-pmtiles:latest
+  #   command: python benchmark_runner.py --script-id vector-tiles-100k-pmtiles --benchmark-run 1 --run-id ABCDEF
+
+  # vector-tiles-100k-vmt:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: vector-tiles-100k-vmt:latest
+  #   command: python benchmark_runner.py --script-id vector-tiles-100k-vmt --benchmark-run 1 --run-id ABCDEF
+
+  # spatial-aggregation-grid-duckdb:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: spatial-aggregation-grid-duckdb:latest
+  #   command: python benchmark_runner.py --script-id spatial-aggregation-grid-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  # spatial-aggregation-grid-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: spatial-aggregation-grid-postgis:latest
+  #   command: python benchmark_runner.py --script-id spatial-aggregation-grid-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # ordered-range-query-duckdb:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: ordered-range-query-duckdb:latest
+  #   command: python benchmark_runner.py --script-id ordered-range-query-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  # ordered-range-query-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: ordered-range-query-postgis:latest
+  #   command: python benchmark_runner.py --script-id ordered-range-query-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-neighborhood-duckdb:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-neighborhood-duckdb:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-neighborhood-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-municipality-duckdb:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-municipality-duckdb:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-municipality-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-county-duckdb:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-county-duckdb:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-county-duckdb --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-neighborhood-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-neighborhood-postgis:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-neighborhood-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-municipality-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-municipality-postgis:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-municipality-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-county-postgis:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-county-postgis:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-county-postgis --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-neighborhood-local:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-neighborhood-local:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-neighborhood-local --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-municipality-local:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-municipality-local:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-municipality-local --benchmark-run 1 --run-id ABCDEF
+
+  # bbox-filtering-result-set-sizes-county-local:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: bbox-filtering-result-set-sizes-county-local:latest
+  #   command: python benchmark_runner.py --script-id bbox-filtering-result-set-sizes-county-local --benchmark-run 1 --run-id ABCDEF
+
+  # national-scale-spatial-join-databricks-2-nodes:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: national-scale-spatial-join-databricks-2-nodes:latest
+  #   command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-2-nodes --benchmark-run 1 --run-id ABCDEF
+
+  # national-scale-spatial-join-databricks-4-nodes:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: national-scale-spatial-join-databricks-4-nodes:latest
+  #   command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-4-nodes --benchmark-run 1 --run-id ABCDEF
+
+  # national-scale-spatial-join-databricks-8-nodes:
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: .docker/Query.Dockerfile
+  #   image: national-scale-spatial-join-databricks-8-nodes:latest
+  #   command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-8-nodes --benchmark-run 1 --run-id ABCDEF
