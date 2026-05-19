@@ -13,7 +13,7 @@ from src import Config
 from src.application.common import logger
 from src.application.contracts import IMonitoringStorageService, IAzureCostService
 from src.application.dtos import CostConfiguration
-from src.domain.enums import BlobOperationType
+from src.domain.enums import BlobOperationType, DatasetSize
 from src.infra.infrastructure import Containers
 
 
@@ -38,6 +38,13 @@ def _get_benchmark_run(
     benchmark_run: int = Provide[Containers.config.benchmark_run],
 ) -> int:
     return benchmark_run
+
+
+@inject
+def _get_dataset_size(
+    dataset_size: str = Provide[Containers.config.dataset_size],
+) -> DatasetSize:
+    return DatasetSize(dataset_size)
 
 
 @inject
