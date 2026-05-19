@@ -3,42 +3,49 @@ experiments:
     image: doppaacr.azurecr.io/db-scan-blob-storage:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["db-scan-postgis"]
 
   - id: db-scan-postgis
     image: doppaacr.azurecr.io/db-scan-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["db-scan-blob-storage"]
 
   - id: bbox-filtering-advanced-duckdb
     image: doppaacr.azurecr.io/bbox-filtering-advanced-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["bbox-filtering-advanced-postgis"]
 
   - id: bbox-filtering-advanced-postgis
     image: doppaacr.azurecr.io/bbox-filtering-advanced-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["bbox-filtering-advanced-duckdb"]
 
   - id: bbox-filtering-simple-local
     image: doppaacr.azurecr.io/bbox-filtering-simple-local:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["bbox-filtering-simple-blob-storage"]
 
   - id: bbox-filtering-simple-blob-storage
     image: doppaacr.azurecr.io/bbox-filtering-simple-blob-storage:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["bbox-filtering-simple-local"]
 
   - id: bbox-filtering-result-set-sizes-neighborhood-duckdb
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-neighborhood-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-neighborhood-local",
@@ -49,6 +56,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-municipality-local",
@@ -59,6 +67,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-county-postgis",
@@ -69,6 +78,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-neighborhood-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-neighborhood-local",
@@ -79,6 +89,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-municipality-local",
@@ -89,6 +100,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-county-local",
@@ -99,6 +111,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-neighborhood-local:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-neighborhood-duckdb",
@@ -109,6 +122,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-local:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-municipality-duckdb",
@@ -119,6 +133,7 @@ experiments:
     image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-local:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids:
       [
         "bbox-filtering-result-set-sizes-county-duckdb",
@@ -129,100 +144,117 @@ experiments:
     image: doppaacr.azurecr.io/vector-tiles-single-tile-pmtiles:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["vector-tiles-single-tile-vmt"]
 
   - id: vector-tiles-single-tile-vmt
     image: doppaacr.azurecr.io/vector-tiles-single-tile-vmt:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["vector-tiles-single-tile-pmtiles"]
 
   - id: spatial-aggregation-grid-duckdb
     image: doppaacr.azurecr.io/spatial-aggregation-grid-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["spatial-aggregation-grid-postgis"]
 
   - id: spatial-aggregation-grid-postgis
     image: doppaacr.azurecr.io/spatial-aggregation-grid-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["spatial-aggregation-grid-duckdb"]
 
   - id: attribute-spatial-compound-filter-duckdb
     image: doppaacr.azurecr.io/attribute-spatial-compound-filter-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["attribute-spatial-compound-filter-postgis"]
 
   - id: attribute-spatial-compound-filter-postgis
     image: doppaacr.azurecr.io/attribute-spatial-compound-filter-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["attribute-spatial-compound-filter-duckdb"]
 
   - id: ordered-range-query-duckdb
     image: doppaacr.azurecr.io/ordered-range-query-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["ordered-range-query-postgis"]
 
   - id: ordered-range-query-postgis
     image: doppaacr.azurecr.io/ordered-range-query-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["ordered-range-query-duckdb"]
 
   - id: point-in-polygon-lookup-duckdb
     image: doppaacr.azurecr.io/point-in-polygon-lookup-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["point-in-polygon-lookup-postgis"]
 
   - id: point-in-polygon-lookup-postgis
     image: doppaacr.azurecr.io/point-in-polygon-lookup-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["point-in-polygon-lookup-duckdb"]
 
   - id: national-scale-spatial-join-duckdb
     image: doppaacr.azurecr.io/national-scale-spatial-join-duckdb:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["national-scale-spatial-join-postgis"]
 
   - id: national-scale-spatial-join-postgis
     image: doppaacr.azurecr.io/national-scale-spatial-join-postgis:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: ["national-scale-spatial-join-duckdb"]
 
   - id: national-scale-spatial-join-databricks-2-nodes
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-2-nodes:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: []
 
   - id: national-scale-spatial-join-databricks-4-nodes
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-4-nodes:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: []
 
   - id: national-scale-spatial-join-databricks-8-nodes
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-8-nodes:latest
     cpu: 3
     memory_gb: 8
+    dataset_size: small
     related_script_ids: []
 
 #  - id: vector-tiles-100k-pmtiles
 #    image: doppaacr.azurecr.io/vector-tiles-100k-pmtiles:latest
 #    cpu: 3
 #    memory_gb: 8
+#    dataset_size: small
 #    related_script_ids: ["vector-tiles-100k-vmt"]
 #
 #  - id: vector-tiles-100k-vmt
 #    image: doppaacr.azurecr.io/vector-tiles-100k-vmt:latest
 #    cpu: 3
 #    memory_gb: 8
+#    dataset_size: small
 #    related_script_ids: ["vector-tiles-100k-pmtiles"]

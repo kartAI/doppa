@@ -101,6 +101,7 @@ def _run_container_benchmark(
     docker_image = str(experiment["image"])
     cpu = str(experiment["cpu"])
     memory_gb = str(experiment["memory_gb"])
+    dataset_size = str(experiment.get("dataset_size", "small"))
 
     container_group_name = f"benchmark-{experiment_id}"
     _delete_container_instance(container_group_name=container_group_name)
@@ -112,6 +113,7 @@ def _run_container_benchmark(
         docker_image=docker_image,
         cpu=cpu,
         memory_gb=memory_gb,
+        dataset_size=dataset_size,
     )
     _check_container_state(container_group_name=container_group_name)
     _delete_container_instance(container_group_name=container_group_name)
@@ -208,6 +210,7 @@ def _create_container_instance(
     docker_image: str,
     cpu: str,
     memory_gb: str,
+    dataset_size: str,
 ) -> None:
     acr_login_server = os.getenv("ACR_LOGIN_SERVER")
 
@@ -215,7 +218,8 @@ def _create_container_instance(
         f"python benchmark_runner.py "
         f"--script-id {experiment_id} "
         f"--benchmark-run {benchmark_run} "
-        f"--run-id {run_id}"
+        f"--run-id {run_id} "
+        f"--dataset-size {dataset_size}"
     )
 
     create_command = [

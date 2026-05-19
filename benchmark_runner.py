@@ -47,8 +47,10 @@ def benchmark_runner() -> None:
     function in ``src/presentation/entrypoints/``. Raises ``ValueError`` if the
     script ID is unknown.
     """
-    script_id, benchmark_run, run_id = _get_args()
-    initialize_dependencies(run_id=run_id, benchmark_run=benchmark_run)
+    script_id, benchmark_run, run_id, dataset_size = _get_args()
+    initialize_dependencies(
+        run_id=run_id, benchmark_run=benchmark_run, dataset_size=dataset_size
+    )
 
     match script_id:
         case "db-scan-blob-storage":
@@ -160,7 +162,7 @@ def benchmark_runner() -> None:
             raise ValueError("Script ID is invalid")
 
 
-def _get_args() -> tuple[str, int, Optional[str]]:
+def _get_args() -> tuple[str, int, Optional[str], DatasetSize]:
     parser = argparse.ArgumentParser("doppa-data")
     parser.add_argument(
         "--script-id",
@@ -179,8 +181,20 @@ def _get_args() -> tuple[str, int, Optional[str]]:
         help="Run identifier. Randomly generated and prefixed with today's date",
     )
 
+    parser.add_argument(
+        "--dataset-size",
+        choices=[size.value for size in DatasetSize],
+        default=DatasetSize.SMALL.value,
+        help="Dataset tier the benchmark runs against (small/medium/large). Defaults to 'small'.",
+    )
+
     args = parser.parse_args()
-    return args.script_id, int(args.benchmark_run), args.run_id
+    return (
+        args.script_id,
+        int(args.benchmark_run),
+        args.run_id,
+        DatasetSize(args.dataset_size),
+    )
 
 
 if __name__ == "__main__":
