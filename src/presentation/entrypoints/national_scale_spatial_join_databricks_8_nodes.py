@@ -1,7 +1,6 @@
 from dependency_injector.wiring import Provide, inject
 
 from src.application.contracts import IDatabricksService
-from src.domain.enums import DatasetSize
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._databricks_benchmark_runner import (
     run_databricks_national_scale_spatial_join,
@@ -10,17 +9,17 @@ from src.presentation.entrypoints._databricks_benchmark_runner import (
 
 @inject
 def national_scale_spatial_join_databricks_8_nodes(
-    dataset_size: DatasetSize = DatasetSize.SMALL,
     databricks_service: IDatabricksService = Provide[Containers.databricks_service],
 ) -> None:
     """
-    Benchmark: national-scale spatial join between Norwegian counties and the configured
-    buildings dataset size executed on Azure Databricks with an 8-worker cluster. The
-    cluster is provisioned once, every warmup and timed iteration runs against it, and the
-    cluster is terminated after the benchmark completes.
+    Benchmark: national-scale spatial join between Norwegian municipalities and the
+    configured buildings dataset size executed on Azure Databricks with an 8-worker
+    cluster. The dataset size is pulled from DI inside
+    ``run_databricks_national_scale_spatial_join``. The cluster is provisioned once,
+    every warmup and timed iteration runs against it, and the cluster is terminated
+    after the benchmark completes.
     """
     run_databricks_national_scale_spatial_join(
         databricks_service=databricks_service,
         num_workers=8,
-        dataset_size=dataset_size,
     )

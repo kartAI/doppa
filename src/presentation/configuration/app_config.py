@@ -25,6 +25,8 @@ def initialize_dependencies(
             "src.application.common.monitor_utils",
             "src.application.common.monitor",
 
+            "src.presentation.entrypoints._factory",
+
             "src.presentation.entrypoints.db_scan_blob_storage",
             "src.presentation.entrypoints.db_scan_postgis",
 
@@ -34,15 +36,15 @@ def initialize_dependencies(
             "src.presentation.entrypoints.bbox_filtering_simple_local",
             "src.presentation.entrypoints.bbox_filtering_simple_blob_storage",
 
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_neighborhood_duckdb",
+            "src.presentation.entrypoints.bbox_filtering_duckdb",
             "src.presentation.entrypoints.bbox_filtering_result_set_sizes_municipality_duckdb",
             "src.presentation.entrypoints.bbox_filtering_result_set_sizes_county_duckdb",
 
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_neighborhood_postgis",
+            "src.presentation.entrypoints.bbox_filtering_postgis",
             "src.presentation.entrypoints.bbox_filtering_result_set_sizes_municipality_postgis",
             "src.presentation.entrypoints.bbox_filtering_result_set_sizes_county_postgis",
 
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_neighborhood_local",
+            "src.presentation.entrypoints.bbox_filtering_local",
             "src.presentation.entrypoints.bbox_filtering_result_set_sizes_municipality_local",
             "src.presentation.entrypoints.bbox_filtering_result_set_sizes_county_local",
 

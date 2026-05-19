@@ -5,8 +5,9 @@ from sqlalchemy import Engine, text
 
 from src.application.common.monitor import monitor
 from src.application.dtos import CostConfiguration
-from src.domain.enums import BenchmarkIteration, BoundingBox
+from src.domain.enums import BenchmarkIteration, BoundingBox, DatasetSize
 from src.infra.infrastructure import Containers
+from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
 TOTAL_POINTS: int = 10
 INSIDE_RATIO: float = 0.3
@@ -18,27 +19,34 @@ def point_in_polygon_lookup_postgis(
     db_context: Engine = Provide[Containers.postgres_context],
 ) -> None:
     """
-    Benchmark: point-in-polygon lookups against the seeded ``buildings_small`` table
-    using PostGIS. Generates a mix of inside and outside Trondheim-area points up
+    Benchmark: point-in-polygon lookups against the seeded ``buildings_{size}`` table
+    using PostGIS. The dataset size is pulled from DI and parameterises the buildings
+    table reference. Generates a mix of inside and outside Trondheim-area points up
     front, then times per-point ``ST_Contains`` counts.
     """
-    points = _generate_points(db_context=db_context)
-    _benchmark(points=points)
+    dataset_size = _get_dataset_size()
+    points = _generate_points(db_context=db_context, dataset_size=dataset_size)
+    benchmark_fn = _build_benchmark_fn(dataset_size=dataset_size)
+    benchmark_fn(points=points, db_context=db_context)
 
 
-def _generate_points(db_context: Engine) -> list[tuple[float, float]]:
+def _generate_points(
+    db_context: Engine, dataset_size: DatasetSize
+) -> list[tuple[float, float]]:
     min_lon, min_lat, max_lon, max_lat = BoundingBox.TRONDHEIM_WGS84.value
     n_inside = int(TOTAL_POINTS * INSIDE_RATIO)
     n_outside = TOTAL_POINTS - n_inside
 
+    buildings_table = f"buildings_{dataset_size.value}"
+
     # TODO: See if this query can be improved in terms of efficiency
-    sql = text("""
+    sql = text(f"""
         WITH buildings_with_point_on_surface AS (
-            SELECT *, ST_PointOnSurface(geometry) AS point_on_surface FROM buildings_small
+            SELECT *, ST_PointOnSurface(geometry) AS point_on_surface FROM {buildings_table}
         ),
 
         buildings_inside AS(
-            SELECT 
+            SELECT
                 ST_X(bpof.point_on_surface) AS lon,
                 ST_Y(bpof.point_on_surface) AS lat
             FROM buildings_with_point_on_surface bpof
@@ -76,24 +84,29 @@ def _generate_points(db_context: Engine) -> list[tuple[float, float]]:
     return combined
 
 
-@inject
-@monitor(
-    query_id="point-in-polygon-lookup-postgis",
-    benchmark_iteration=BenchmarkIteration.POINT_IN_POLYGON_LOOKUP,
-    cost_configuration=CostConfiguration(include_aci=True, include_postgres=True),
-)
-def _benchmark(
-    points: list[tuple[float, float]],
-    db_context: Engine = Provide[Containers.postgres_context],
-) -> list:
-    sql = text("""
-        SELECT COUNT(*)
-        FROM buildings_small
-        WHERE ST_Contains(geometry, ST_SetSRID(ST_Point(:lon, :lat), 4326))
-        """)
+def _build_benchmark_fn(dataset_size: DatasetSize):
+    query_id = _build_query_id("point-in-polygon-lookup-postgis", dataset_size)
+    buildings_table = f"buildings_{dataset_size.value}"
 
-    results: list = []
-    with db_context.connect() as conn:
-        for lon, lat in points:
-            results.append(conn.execute(sql, {"lon": lon, "lat": lat}).scalar_one())
-    return results
+    @monitor(
+        query_id=query_id,
+        benchmark_iteration=BenchmarkIteration.POINT_IN_POLYGON_LOOKUP,
+        cost_configuration=CostConfiguration(include_aci=True, include_postgres=True),
+    )
+    def _benchmark(
+        points: list[tuple[float, float]],
+        db_context: Engine,
+    ) -> list:
+        sql = text(f"""
+            SELECT COUNT(*)
+            FROM {buildings_table}
+            WHERE ST_Contains(geometry, ST_SetSRID(ST_Point(:lon, :lat), 4326))
+            """)
+
+        results: list = []
+        with db_context.connect() as conn:
+            for lon, lat in points:
+                results.append(conn.execute(sql, {"lon": lon, "lat": lat}).scalar_one())
+        return results
+
+    return _benchmark
