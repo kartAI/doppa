@@ -1,12 +1,11 @@
 from dependency_injector.wiring import inject, Provide
 
+from src import Config
 from src.application.common.monitor import monitor
 from src.application.contracts import ITileApiService, ITileService
 from src.application.dtos import CostConfiguration
 from src.domain.enums import BenchmarkIteration
 from src.infra.infrastructure import Containers
-
-TOTAL_REQUESTS: int = 100_000
 
 
 @inject
@@ -16,7 +15,7 @@ def vector_tiles_100k_vmt(tile_service: ITileService = Provide[Containers.tile_s
     PostGIS. Loads the candidate tile list before timing sequential per-tile HTTP
     requests.
     """
-    tiles = tile_service.load_tiles(number_of_tiles=TOTAL_REQUESTS)
+    tiles = tile_service.load_tiles(number_of_tiles=Config.VECTOR_TILES_100K_TOTAL_REQUESTS)
     _benchmark(tiles=tiles)
 
 
