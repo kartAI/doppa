@@ -20,8 +20,10 @@ def point_in_polygon_lookup_duckdb(
     """
     Benchmark: point-in-polygon lookups against the buildings dataset using DuckDB's
     spatial extension over Azure Blob Storage. The dataset size is pulled from DI and
-    parameterises the parquet path. Generates a mix of inside and outside
-    Trondheim-area points up front, then times per-point ``ST_Contains`` counts.
+    parameterises the parquet path. Generates a mix of probe points guaranteed to
+    fall inside buildings and uniformly random points within the Trondheim bounding
+    box (which may or may not land on a building) up front, then times per-point
+    ``ST_Contains`` counts.
     """
     dataset_size = _get_dataset_size()
     points = _generate_points(
@@ -38,7 +40,7 @@ def _generate_points(
 ) -> list[tuple[float, float]]:
     min_lon, min_lat, max_lon, max_lat = BoundingBox.TRONDHEIM_WGS84.value
     n_inside = int(Config.POINT_IN_POLYGON_TOTAL_POINTS * Config.POINT_IN_POLYGON_INSIDE_RATIO)
-    n_outside = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
+    n_random = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
 
     path = path_service.create_release_virtual_filesystem_path(
         storage_scheme="az",
@@ -76,12 +78,12 @@ def _generate_points(
 
     # TODO: Explore comments from https://github.com/kartAI/doppa/pull/196
     rng = random.Random(Config.POINT_IN_POLYGON_PROBE_SEED)
-    outside_points = [
+    random_bbox_points = [
         (rng.uniform(min_lon, max_lon), rng.uniform(min_lat, max_lat))
-        for _ in range(n_outside)
+        for _ in range(n_random)
     ]
 
-    combined = inside_points + outside_points
+    combined = inside_points + random_bbox_points
     rng.shuffle(combined)
     return combined
 

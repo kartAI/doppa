@@ -19,8 +19,10 @@ def point_in_polygon_lookup_local() -> None:
     locally via GeoPandas. The Shapefile target is the small dataset only per
     Table 4.2.1, so this entrypoint refuses to run at MEDIUM or LARGE rather than
     silently producing comparable numbers. Downloads the pre-baked shapefile copy
-    from blob storage, generates a mix of inside and outside Trondheim-area points
-    up front, then times per-point ``contains`` counts.
+    from blob storage, generates a mix of probe points guaranteed to fall inside
+    buildings and uniformly random points within the Trondheim bounding box (which
+    may or may not land on a building) up front, then times per-point
+    ``contains`` counts.
     """
     dataset_size = _get_dataset_size()
     if dataset_size is not DatasetSize.SMALL:
@@ -38,7 +40,7 @@ def point_in_polygon_lookup_local() -> None:
 def _generate_points(gdf: gpd.GeoDataFrame) -> list[tuple[float, float]]:
     min_lon, min_lat, max_lon, max_lat = BoundingBox.TRONDHEIM_WGS84.value
     n_inside = int(Config.POINT_IN_POLYGON_TOTAL_POINTS * Config.POINT_IN_POLYGON_INSIDE_RATIO)
-    n_outside = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
+    n_random = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
 
     envelope = box(min_lon, min_lat, max_lon, max_lat)
     inside_buildings = gdf[gdf.geometry.is_valid & gdf.geometry.intersects(envelope)]
@@ -49,12 +51,12 @@ def _generate_points(gdf: gpd.GeoDataFrame) -> list[tuple[float, float]]:
     inside_points = inside_sorted[:n_inside]
 
     rng = random.Random(Config.POINT_IN_POLYGON_PROBE_SEED)
-    outside_points = [
+    random_bbox_points = [
         (rng.uniform(min_lon, max_lon), rng.uniform(min_lat, max_lat))
-        for _ in range(n_outside)
+        for _ in range(n_random)
     ]
 
-    combined = list(inside_points) + outside_points
+    combined = list(inside_points) + random_bbox_points
     rng.shuffle(combined)
     return combined
 
