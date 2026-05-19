@@ -415,19 +415,18 @@ AZURE_BLOB_STORAGE_ACCOUNT_KEY=<storage-account-access-key>
 
 The notebook script is automatically uploaded to the Databricks workspace at run time. No manual upload is required.
 
-##### 5. Upload county boundaries
+##### 5. Publish municipality boundaries
 
-The spatial join requires Norwegian county polygon data in the `metadata` blob storage container.
-Upload `counties.parquet` to the `metadata` container in the `doppabs` storage account before running
-the Databricks benchmarks. This can be done via the Azure Portal Storage Browser or the Azure CLI:
+The RQ2 national-scale spatial join benchmarks require a ~360-feature Norwegian municipality polygon
+set (`municipalities.parquet`) in the `metadata` blob storage container. This file is produced by the
+`04-kommuner-contribution` notebook in the [doppa-data-contribution](https://github.com/kartAI/doppa-data-contribution)
+repository, which writes it to the `contributions` blob storage container.
 
-```bash
-az storage blob upload \
-  --account-name doppabs \
-  --container-name metadata \
-  --name counties.parquet \
-  --file <path-to-counties.parquet>
-```
+**One-time prerequisite:** run the `04-kommuner-contribution` notebook once against the target storage
+account. After it succeeds, Step 6 of `setup_benchmarking_framework` (`setup-framework` benchmark)
+copies `municipalities.parquet` from `contributions` to `metadata` automatically — no manual upload
+required. If the source blob is missing, the setup step fails fast with an actionable error pointing
+back at the notebook.
 
 ### Local development
 
@@ -511,6 +510,7 @@ A full `setup_benchmarking_framework` run on real Azure resources is dominated b
 | 3    | Synthesize large (~100M rows)            | 60–110 min          |
 | 4    | Postgres seed (small + medium + large)   | 3.5–7 hr            |
 | 5    | Shapefile copy                           | 3–5 min             |
+| 6    | Publish municipalities.parquet           | 5–15 s              |
 
 For faster iteration during development, set `SETUP_COUNTY_LIMIT=N` in `.env`. When set, `TestDatasetService`
 and `DatasetSynthesisService` slice their per-county loops to the first `N` Norwegian counties, and the Postgres
@@ -526,15 +526,15 @@ Leave `SETUP_COUNTY_LIMIT` unset (or remove it) for the full Norway run.
 ## Running the framework
 
 To run the entire script simply run `python main.py` or `python -m main` and to run a single benchmark run
-`python benchmark_runner.py --script-id <script-id> --benchmark-run <int >= 1> --run-id <run-id>`. See the table
-below for more information about
-`--script-id` and `--run-id`.
+`python benchmark_runner.py --script-id <script-id> --benchmark-run <int >= 1> --run-id <run-id> --dataset-size <small|medium|large>`.
+See the table below for more information about the available flags.
 
 | Flag              | Format / Pattern             | Meaning                                                                                                                                                       |
 |-------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `--script-id`     | `<query-type>-<service>`     | Identifies which query is being executed. `<query-type>` examples: `db-scan`, `bbox-filtering`. `<service>` examples: `blob-storage`, `postgis`.              |
 | `--benchmark-run` | `int`                        | Identifier that tells which iteration of the benchmarking is currently running. This is to run the benchmarks on multiple container instances.                |
 | `--run-id`        | `<current-date>-<random-id>` | Identifies a benchmark run. Shared across all queries in a single orchestrated run. Date format: `yyyy-mm-dd`; random ID: 6-character uppercase alphanumeric. |
+| `--dataset-size`  | `small\|medium\|large`       | Dataset tier the benchmark runs against. Defaults to `small`. Bound to `container.config.dataset_size` and rehydrated as `DatasetSize` via `_get_dataset_size()`. |
 
 ## References
 
