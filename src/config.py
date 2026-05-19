@@ -83,6 +83,9 @@ class Config:
     )
     TRONDHEIM_CENTER_WGS84: tuple[float, float] = (10.395, 63.430)
     KNN_SEARCH_K: int = 10
+    POINT_IN_POLYGON_TOTAL_POINTS: int = 10
+    POINT_IN_POLYGON_INSIDE_RATIO: float = 0.3
+    POINT_IN_POLYGON_PROBE_SEED: int = 42
 
     # STAC
     STAC_LICENSE = "CC-BY-4.0"

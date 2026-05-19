@@ -12,10 +12,6 @@ from src.domain.enums import StorageContainer, BenchmarkIteration, BoundingBox, 
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
-TOTAL_POINTS: int = 10
-INSIDE_RATIO: float = 0.3
-SEED: int = 42
-
 
 def point_in_polygon_lookup_local() -> None:
     """
@@ -41,8 +37,8 @@ def point_in_polygon_lookup_local() -> None:
 
 def _generate_points(gdf: gpd.GeoDataFrame) -> list[tuple[float, float]]:
     min_lon, min_lat, max_lon, max_lat = BoundingBox.TRONDHEIM_WGS84.value
-    n_inside = int(TOTAL_POINTS * INSIDE_RATIO)
-    n_outside = TOTAL_POINTS - n_inside
+    n_inside = int(Config.POINT_IN_POLYGON_TOTAL_POINTS * Config.POINT_IN_POLYGON_INSIDE_RATIO)
+    n_outside = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
 
     envelope = box(min_lon, min_lat, max_lon, max_lat)
     inside_buildings = gdf[gdf.geometry.is_valid & gdf.geometry.intersects(envelope)]
@@ -52,7 +48,7 @@ def _generate_points(gdf: gpd.GeoDataFrame) -> list[tuple[float, float]]:
     )
     inside_points = inside_sorted[:n_inside]
 
-    rng = random.Random(SEED)
+    rng = random.Random(Config.POINT_IN_POLYGON_PROBE_SEED)
     outside_points = [
         (rng.uniform(min_lon, max_lon), rng.uniform(min_lat, max_lat))
         for _ in range(n_outside)
