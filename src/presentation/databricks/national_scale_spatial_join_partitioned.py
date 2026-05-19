@@ -10,6 +10,11 @@
 # - "driver collection"      = driver_collection_time_ms (residual,
 #                              includes planning + final collect)
 #
+# Join strategy: partitioned. Sedona's spatial partitioner (KDB-tree grid) is
+# enabled and the index is built on the right (buildings) side so the join
+# becomes a `RangeJoin` over a co-partitioned index instead of the default
+# `SortMergeJoin` Spark would pick for ST_Intersects.
+#
 # Notes:
 # - stage_durations_ms is capped at the first 100 stages (dbutils.notebook.exit
 #   has a payload cap around 1 MB); a warning is logged if truncation happens.
@@ -44,6 +49,12 @@ spark.conf.set(
 )
 
 sedona = SedonaContext.create(spark)
+
+# Explicit Sedona spatial partitioner: KDB-tree grid with the index built on
+# the right-hand (buildings) side of the join.
+spark.conf.set("sedona.global.index", "true")
+spark.conf.set("sedona.join.gridtype", "kdbtree")
+spark.conf.set("sedona.join.indexbuildside", "right")
 
 # COMMAND ----------
 
