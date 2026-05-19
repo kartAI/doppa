@@ -141,19 +141,13 @@ def benchmark_runner() -> None:
             national_scale_spatial_join_postgis()
             return
         case "national-scale-spatial-join-databricks-2-nodes":
-            national_scale_spatial_join_databricks_2_nodes(
-                dataset_size=DatasetSize.SMALL
-            )
+            national_scale_spatial_join_databricks_2_nodes()
             return
         case "national-scale-spatial-join-databricks-4-nodes":
-            national_scale_spatial_join_databricks_4_nodes(
-                dataset_size=DatasetSize.SMALL
-            )
+            national_scale_spatial_join_databricks_4_nodes()
             return
         case "national-scale-spatial-join-databricks-8-nodes":
-            national_scale_spatial_join_databricks_8_nodes(
-                dataset_size=DatasetSize.SMALL
-            )
+            national_scale_spatial_join_databricks_8_nodes()
             return
         case "setup-framework":
             setup_benchmarking_framework()
