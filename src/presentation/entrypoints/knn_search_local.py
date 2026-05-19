@@ -17,8 +17,10 @@ def knn_search_local() -> None:
     locally via GeoPandas. The Shapefile target is the small dataset only per
     Table 4.2.1, so this entrypoint refuses to run at MEDIUM or LARGE rather than
     silently producing comparable numbers. Downloads the pre-baked shapefile copy
-    from blob storage, then computes exact geometry distance from the fixed
-    Trondheim-center reference point and returns the ten nearest rows.
+    from blob storage, then ranks rows by planar distance to the fixed
+    Trondheim-center reference point and returns the ten nearest. Distance is
+    computed in lon/lat degrees on EPSG:4326 geometry to match the DuckDB
+    ``ST_Distance`` and PostGIS ``<->`` semantics used by the peer entrypoints.
     """
     dataset_size = _get_dataset_size()
     if dataset_size is not DatasetSize.SMALL:
