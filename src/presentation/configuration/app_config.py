@@ -26,6 +26,7 @@ def initialize_dependencies(
             "src.application.common.monitor",
 
             "src.presentation.entrypoints._factory",
+            "src.presentation.entrypoints._shapefile",
 
             "src.presentation.entrypoints.db_scan_blob_storage",
             "src.presentation.entrypoints.db_scan_postgis",
@@ -58,12 +59,18 @@ def initialize_dependencies(
             "src.presentation.entrypoints.spatial_aggregation_grid_postgis",
 
             "src.presentation.entrypoints.attribute_spatial_compound_filter_duckdb",
+            "src.presentation.entrypoints.attribute_spatial_compound_filter_local",
             "src.presentation.entrypoints.attribute_spatial_compound_filter_postgis",
+
+            "src.presentation.entrypoints.knn_search_duckdb",
+            "src.presentation.entrypoints.knn_search_local",
+            "src.presentation.entrypoints.knn_search_postgis",
 
             "src.presentation.entrypoints.ordered_range_query_duckdb",
             "src.presentation.entrypoints.ordered_range_query_postgis",
 
             "src.presentation.entrypoints.point_in_polygon_lookup_duckdb",
+            "src.presentation.entrypoints.point_in_polygon_lookup_local",
             "src.presentation.entrypoints.point_in_polygon_lookup_postgis",
 
             "src.presentation.entrypoints.national_scale_spatial_join_duckdb",

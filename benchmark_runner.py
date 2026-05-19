@@ -26,10 +26,15 @@ from src.presentation.entrypoints import (
     spatial_aggregation_grid_duckdb,
     spatial_aggregation_grid_postgis,
     attribute_spatial_compound_filter_duckdb,
+    attribute_spatial_compound_filter_local,
     attribute_spatial_compound_filter_postgis,
+    knn_search_duckdb,
+    knn_search_local,
+    knn_search_postgis,
     ordered_range_query_duckdb,
     ordered_range_query_postgis,
     point_in_polygon_lookup_duckdb,
+    point_in_polygon_lookup_local,
     point_in_polygon_lookup_postgis,
     national_scale_spatial_join_duckdb,
     national_scale_spatial_join_postgis,
@@ -119,8 +124,20 @@ def benchmark_runner() -> None:
         case "attribute-spatial-compound-filter-duckdb":
             attribute_spatial_compound_filter_duckdb()
             return
+        case "attribute-spatial-compound-filter-local":
+            attribute_spatial_compound_filter_local()
+            return
         case "attribute-spatial-compound-filter-postgis":
             attribute_spatial_compound_filter_postgis()
+            return
+        case "knn-search-duckdb":
+            knn_search_duckdb()
+            return
+        case "knn-search-local":
+            knn_search_local()
+            return
+        case "knn-search-postgis":
+            knn_search_postgis()
             return
         case "ordered-range-query-duckdb":
             ordered_range_query_duckdb()
@@ -130,6 +147,9 @@ def benchmark_runner() -> None:
             return
         case "point-in-polygon-lookup-duckdb":
             point_in_polygon_lookup_duckdb()
+            return
+        case "point-in-polygon-lookup-local":
+            point_in_polygon_lookup_local()
             return
         case "point-in-polygon-lookup-postgis":
             point_in_polygon_lookup_postgis()

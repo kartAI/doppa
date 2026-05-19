@@ -8,8 +8,6 @@ from src.application.dtos import CostConfiguration
 from src.domain.enums import StorageContainer, BenchmarkIteration
 from src.infra.infrastructure import Containers
 
-TOTAL_REQUESTS: int = 100_000
-
 
 @inject
 def vector_tiles_100k_pmtiles(
@@ -29,7 +27,7 @@ def vector_tiles_100k_pmtiles(
 
     reader = tile_api_service.create_pmtiles_reader(pmtiles_url=pmtiles_azure_url)
 
-    tiles = tile_service.load_tiles(number_of_tiles=TOTAL_REQUESTS)
+    tiles = tile_service.load_tiles(number_of_tiles=Config.VECTOR_TILES_100K_TOTAL_REQUESTS)
     _benchmark(reader=reader, tiles=tiles)
 
 

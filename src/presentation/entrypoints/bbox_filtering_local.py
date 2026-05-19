@@ -1,13 +1,11 @@
 import geopandas as gpd
-from dependency_injector.wiring import inject, Provide
 
 from src import Config
 from src.application.common.monitor import monitor
-from src.application.contracts import IBlobStorageService
 from src.application.dtos import CostConfiguration
-from src.domain.enums import StorageContainer, BenchmarkIteration, BoundingBox, DatasetSize
-from src.infra.infrastructure import Containers
+from src.domain.enums import BenchmarkIteration, BoundingBox, DatasetSize
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
+from src.presentation.entrypoints._shapefile import download_buildings_shapefile
 
 
 def bbox_filtering_local() -> None:
@@ -25,7 +23,7 @@ def bbox_filtering_local() -> None:
             f"bbox_filtering_local only supports DatasetSize.SMALL; "
             f"got {dataset_size}. The Shapefile target is small-only per Table 4.2.1."
         )
-    _download_data()
+    download_buildings_shapefile()
     benchmark_fn = _build_benchmark_fn(dataset_size=dataset_size)
     benchmark_fn()
 
@@ -50,21 +48,3 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
         gdf = gdf[gdf["area"] > 10]
 
     return _benchmark
-
-
-@inject
-def _download_data(
-        blob_storage_service: IBlobStorageService = Provide[Containers.blob_storage_service]
-) -> None:
-    Config.BUILDINGS_SHAPEFILE.parent.mkdir(parents=True, exist_ok=True)
-
-    blob_prefix = "copies/shapefile"
-    base = Config.BUILDINGS_SHAPEFILE.with_suffix("")
-    for ext in (".shp", ".shx", ".dbf", ".prj", ".cpg", ".qix"):
-        blob_name = f"{blob_prefix}/{base.name}{ext}"
-        data = blob_storage_service.download_file(
-            container_name=StorageContainer.DATA,
-            blob_name=blob_name,
-        )
-        if data is not None:
-            base.with_suffix(ext).write_bytes(data)

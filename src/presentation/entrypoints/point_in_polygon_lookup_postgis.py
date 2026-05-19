@@ -3,15 +3,12 @@ import random
 from dependency_injector.wiring import Provide, inject
 from sqlalchemy import Engine, text
 
+from src import Config
 from src.application.common.monitor import monitor
 from src.application.dtos import CostConfiguration
 from src.domain.enums import BenchmarkIteration, BoundingBox, DatasetSize
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
-
-TOTAL_POINTS: int = 10
-INSIDE_RATIO: float = 0.3
-SEED: int = 42
 
 
 @inject
@@ -21,8 +18,10 @@ def point_in_polygon_lookup_postgis(
     """
     Benchmark: point-in-polygon lookups against the seeded ``buildings_{size}`` table
     using PostGIS. The dataset size is pulled from DI and parameterises the buildings
-    table reference. Generates a mix of inside and outside Trondheim-area points up
-    front, then times per-point ``ST_Contains`` counts.
+    table reference. Generates a mix of probe points guaranteed to fall inside
+    buildings and uniformly random points within the Trondheim bounding box (which
+    may or may not land on a building) up front, then times per-point
+    ``ST_Contains`` counts.
     """
     dataset_size = _get_dataset_size()
     points = _generate_points(db_context=db_context, dataset_size=dataset_size)
@@ -34,8 +33,8 @@ def _generate_points(
     db_context: Engine, dataset_size: DatasetSize
 ) -> list[tuple[float, float]]:
     min_lon, min_lat, max_lon, max_lat = BoundingBox.TRONDHEIM_WGS84.value
-    n_inside = int(TOTAL_POINTS * INSIDE_RATIO)
-    n_outside = TOTAL_POINTS - n_inside
+    n_inside = int(Config.POINT_IN_POLYGON_TOTAL_POINTS * Config.POINT_IN_POLYGON_INSIDE_RATIO)
+    n_random = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
 
     buildings_table = f"buildings_{dataset_size.value}"
 
@@ -73,13 +72,13 @@ def _generate_points(
     inside_points = [(row[0], row[1]) for row in rows]
 
     # TODO: Explore comments from https://github.com/kartAI/doppa/pull/196
-    rng = random.Random(SEED)
-    outside_points = [
+    rng = random.Random(Config.POINT_IN_POLYGON_PROBE_SEED)
+    random_bbox_points = [
         (rng.uniform(min_lon, max_lon), rng.uniform(min_lat, max_lat))
-        for _ in range(n_outside)
+        for _ in range(n_random)
     ]
 
-    combined = inside_points + outside_points
+    combined = inside_points + random_bbox_points
     rng.shuffle(combined)
     return combined
 
