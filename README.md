@@ -26,6 +26,7 @@ measurable and reproducible on identical datasets and hardware.
     - [Engines under test](#engines-under-test)
     - [Databricks cluster lifecycle](#databricks-cluster-lifecycle)
     - [Pairing and randomization](#pairing-and-randomization)
+    - [Test matrix](#test-matrix)
 - [Dataset layout](#dataset-layout)
     - [Sizes and synthesis](#sizes-and-synthesis)
     - [Postgres tables](#postgres-tables)
@@ -146,10 +147,44 @@ sample so the distributed runtime can be decomposed into read, shuffle, and driv
 ### Pairing and randomization
 
 `main.py` shuffles the experiment list with `random.Random(benchmark_run)` before launching containers. Experiments
-that compare directly (for example `db-scan-blob-storage` and `db-scan-postgis`) declare each other under
-`related_script_ids` in `benchmarks.yml` and are launched concurrently via a `ThreadPoolExecutor`. Running a paired
-benchmark in the same wall-clock window controls for short-term cloud variability between the two engines being
-compared.
+that compare directly (for example `point-in-polygon-lookup-duckdb-small` and `point-in-polygon-lookup-postgis-small`)
+declare each other under `related_script_ids` in `benchmarks.yml` and are launched concurrently via a
+`ThreadPoolExecutor`. Running a paired benchmark in the same wall-clock window controls for short-term cloud
+variability between the engines being compared.
+
+Concretely, the outer orchestrator loop is serial: it picks the next experiment that has not yet completed, fans out
+its pair group as one parallel batch, waits for the whole batch to finish, marks every member completed, and moves on.
+At any moment one pair group is in flight; within that group every member runs on its own ACI in parallel.
+
+### Test matrix
+
+The matrix below is the active set of 52 experiments grouped into 33 parallel pair groups. Each cell lists the
+engines that launch together in the same wall-clock window; size suffixes (`-small`, `-medium`, `-large`) are
+appended to the experiment ids in `benchmarks.yml` and forwarded to each container as `--dataset-size`. Shapefile
+(`local`) only participates at the `small` tier per the thesis methodology — it represents the laptop-workflow
+reference, not a scalable engine.
+
+**RQ1 — Single-machine query benchmarks** (28 experiments, 12 pair groups)
+
+| Query type                         | `small` (3-way)              | `medium` (2-way) | `large` (2-way)  |
+|------------------------------------|------------------------------|------------------|------------------|
+| `point-in-polygon-lookup`          | duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
+| `attribute-spatial-compound-filter`| duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
+| `knn-search`                       | duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
+| `bbox-filtering`                   | duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
+
+**RQ2 — National-scale spatial join** (24 experiments, 21 pair groups)
+
+| Engine / strategy                       | `small`                  | `medium`                 | `large`                  |
+|-----------------------------------------|--------------------------|--------------------------|--------------------------|
+| Single-node (paired)                    | duckdb · postgis         | duckdb · postgis         | duckdb · postgis         |
+| Sedona `broadcast` (unpaired)           | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes |
+| Sedona `partitioned` (unpaired)         | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes |
+
+Cells in the **paired** rows list every engine that launches in the same wall-clock window (one ACI each, started
+concurrently via `ThreadPoolExecutor`). Cells in the **unpaired** rows list separate experiments that each run alone
+in their own pair group — they share a row only because they share a strategy/size, not because they co-launch.
+Sedona variants are unpaired because each provisions its own Databricks cluster.
 
 ## Dataset layout
 

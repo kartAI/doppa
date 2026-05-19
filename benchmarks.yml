@@ -1,342 +1,471 @@
 experiments:
-  - id: db-scan-blob-storage
-    image: doppaacr.azurecr.io/db-scan-blob-storage:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["db-scan-postgis"]
+  # ==================================================================
+  # RQ1 — Single-machine query benchmarks (28 experiments)
+  # 4 query types × (DuckDB + PostGIS at small/medium/large
+  #                  + Shapefile at small)
+  # Pairing: at `small` all three engines pair (3-way); at medium/large
+  # DuckDB and PostGIS pair (2-way). Shapefile only runs at small.
+  # ==================================================================
 
-  - id: db-scan-postgis
-    image: doppaacr.azurecr.io/db-scan-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["db-scan-blob-storage"]
-
-  - id: bbox-filtering-advanced-duckdb
-    image: doppaacr.azurecr.io/bbox-filtering-advanced-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["bbox-filtering-advanced-postgis"]
-
-  - id: bbox-filtering-advanced-postgis
-    image: doppaacr.azurecr.io/bbox-filtering-advanced-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["bbox-filtering-advanced-duckdb"]
-
-  - id: bbox-filtering-simple-local
-    image: doppaacr.azurecr.io/bbox-filtering-simple-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["bbox-filtering-simple-blob-storage"]
-
-  - id: bbox-filtering-simple-blob-storage
-    image: doppaacr.azurecr.io/bbox-filtering-simple-blob-storage:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["bbox-filtering-simple-local"]
-
-  - id: bbox-filtering-duckdb
-    image: doppaacr.azurecr.io/bbox-filtering-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-local",
-        "bbox-filtering-postgis",
-      ]
-
-  - id: bbox-filtering-result-set-sizes-municipality-duckdb
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-result-set-sizes-municipality-local",
-        "bbox-filtering-result-set-sizes-municipality-postgis",
-      ]
-
-  - id: bbox-filtering-result-set-sizes-county-duckdb
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-result-set-sizes-county-postgis",
-        "bbox-filtering-result-set-sizes-county-local",
-      ]
-
-  - id: bbox-filtering-postgis
-    image: doppaacr.azurecr.io/bbox-filtering-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-local",
-        "bbox-filtering-duckdb",
-      ]
-
-  - id: bbox-filtering-result-set-sizes-municipality-postgis
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-result-set-sizes-municipality-local",
-        "bbox-filtering-result-set-sizes-municipality-duckdb",
-      ]
-
-  - id: bbox-filtering-result-set-sizes-county-postgis
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-result-set-sizes-county-local",
-        "bbox-filtering-result-set-sizes-county-duckdb",
-      ]
-
-  - id: bbox-filtering-local
-    image: doppaacr.azurecr.io/bbox-filtering-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-duckdb",
-        "bbox-filtering-postgis",
-      ]
-
-  - id: bbox-filtering-result-set-sizes-municipality-local
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-result-set-sizes-municipality-duckdb",
-        "bbox-filtering-result-set-sizes-municipality-postgis",
-      ]
-
-  - id: bbox-filtering-result-set-sizes-county-local
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "bbox-filtering-result-set-sizes-county-duckdb",
-        "bbox-filtering-result-set-sizes-county-postgis",
-      ]
-
-  - id: vector-tiles-single-tile-pmtiles
-    image: doppaacr.azurecr.io/vector-tiles-single-tile-pmtiles:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["vector-tiles-single-tile-vmt"]
-
-  - id: vector-tiles-single-tile-vmt
-    image: doppaacr.azurecr.io/vector-tiles-single-tile-vmt:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["vector-tiles-single-tile-pmtiles"]
-
-  - id: spatial-aggregation-grid-duckdb
-    image: doppaacr.azurecr.io/spatial-aggregation-grid-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["spatial-aggregation-grid-postgis"]
-
-  - id: spatial-aggregation-grid-postgis
-    image: doppaacr.azurecr.io/spatial-aggregation-grid-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["spatial-aggregation-grid-duckdb"]
-
-  - id: attribute-spatial-compound-filter-duckdb
-    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "attribute-spatial-compound-filter-local",
-        "attribute-spatial-compound-filter-postgis",
-      ]
-
-  - id: attribute-spatial-compound-filter-local
-    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "attribute-spatial-compound-filter-duckdb",
-        "attribute-spatial-compound-filter-postgis",
-      ]
-
-  - id: attribute-spatial-compound-filter-postgis
-    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "attribute-spatial-compound-filter-duckdb",
-        "attribute-spatial-compound-filter-local",
-      ]
-
-  - id: ordered-range-query-duckdb
-    image: doppaacr.azurecr.io/ordered-range-query-duckdb:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["ordered-range-query-postgis"]
-
-  - id: ordered-range-query-postgis
-    image: doppaacr.azurecr.io/ordered-range-query-postgis:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids: ["ordered-range-query-duckdb"]
-
-  - id: point-in-polygon-lookup-duckdb
+  # ---- point-in-polygon-lookup ----
+  - id: point-in-polygon-lookup-duckdb-small
     image: doppaacr.azurecr.io/point-in-polygon-lookup-duckdb:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
-      [
-        "point-in-polygon-lookup-local",
-        "point-in-polygon-lookup-postgis",
-      ]
+      - point-in-polygon-lookup-postgis-small
+      - point-in-polygon-lookup-local-small
 
-  - id: point-in-polygon-lookup-local
-    image: doppaacr.azurecr.io/point-in-polygon-lookup-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "point-in-polygon-lookup-duckdb",
-        "point-in-polygon-lookup-postgis",
-      ]
-
-  - id: point-in-polygon-lookup-postgis
+  - id: point-in-polygon-lookup-postgis-small
     image: doppaacr.azurecr.io/point-in-polygon-lookup-postgis:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
-      [
-        "point-in-polygon-lookup-duckdb",
-        "point-in-polygon-lookup-local",
-      ]
+      - point-in-polygon-lookup-duckdb-small
+      - point-in-polygon-lookup-local-small
 
-  - id: knn-search-duckdb
+  - id: point-in-polygon-lookup-local-small
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - point-in-polygon-lookup-duckdb-small
+      - point-in-polygon-lookup-postgis-small
+
+  - id: point-in-polygon-lookup-duckdb-medium
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - point-in-polygon-lookup-postgis-medium
+
+  - id: point-in-polygon-lookup-postgis-medium
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - point-in-polygon-lookup-duckdb-medium
+
+  - id: point-in-polygon-lookup-duckdb-large
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - point-in-polygon-lookup-postgis-large
+
+  - id: point-in-polygon-lookup-postgis-large
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - point-in-polygon-lookup-duckdb-large
+
+  # ---- attribute-spatial-compound-filter ----
+  - id: attribute-spatial-compound-filter-duckdb-small
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - attribute-spatial-compound-filter-postgis-small
+      - attribute-spatial-compound-filter-local-small
+
+  - id: attribute-spatial-compound-filter-postgis-small
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - attribute-spatial-compound-filter-duckdb-small
+      - attribute-spatial-compound-filter-local-small
+
+  - id: attribute-spatial-compound-filter-local-small
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - attribute-spatial-compound-filter-duckdb-small
+      - attribute-spatial-compound-filter-postgis-small
+
+  - id: attribute-spatial-compound-filter-duckdb-medium
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - attribute-spatial-compound-filter-postgis-medium
+
+  - id: attribute-spatial-compound-filter-postgis-medium
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - attribute-spatial-compound-filter-duckdb-medium
+
+  - id: attribute-spatial-compound-filter-duckdb-large
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - attribute-spatial-compound-filter-postgis-large
+
+  - id: attribute-spatial-compound-filter-postgis-large
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - attribute-spatial-compound-filter-duckdb-large
+
+  # ---- knn-search ----
+  - id: knn-search-duckdb-small
     image: doppaacr.azurecr.io/knn-search-duckdb:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
-      [
-        "knn-search-local",
-        "knn-search-postgis",
-      ]
+      - knn-search-postgis-small
+      - knn-search-local-small
 
-  - id: knn-search-local
-    image: doppaacr.azurecr.io/knn-search-local:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      [
-        "knn-search-duckdb",
-        "knn-search-postgis",
-      ]
-
-  - id: knn-search-postgis
+  - id: knn-search-postgis-small
     image: doppaacr.azurecr.io/knn-search-postgis:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
-      [
-        "knn-search-duckdb",
-        "knn-search-local",
-      ]
+      - knn-search-duckdb-small
+      - knn-search-local-small
 
-  - id: national-scale-spatial-join-duckdb
+  - id: knn-search-local-small
+    image: doppaacr.azurecr.io/knn-search-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - knn-search-duckdb-small
+      - knn-search-postgis-small
+
+  - id: knn-search-duckdb-medium
+    image: doppaacr.azurecr.io/knn-search-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - knn-search-postgis-medium
+
+  - id: knn-search-postgis-medium
+    image: doppaacr.azurecr.io/knn-search-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - knn-search-duckdb-medium
+
+  - id: knn-search-duckdb-large
+    image: doppaacr.azurecr.io/knn-search-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - knn-search-postgis-large
+
+  - id: knn-search-postgis-large
+    image: doppaacr.azurecr.io/knn-search-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - knn-search-duckdb-large
+
+  # ---- bbox-filtering ----
+  - id: bbox-filtering-duckdb-small
+    image: doppaacr.azurecr.io/bbox-filtering-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - bbox-filtering-postgis-small
+      - bbox-filtering-local-small
+
+  - id: bbox-filtering-postgis-small
+    image: doppaacr.azurecr.io/bbox-filtering-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - bbox-filtering-duckdb-small
+      - bbox-filtering-local-small
+
+  - id: bbox-filtering-local-small
+    image: doppaacr.azurecr.io/bbox-filtering-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      - bbox-filtering-duckdb-small
+      - bbox-filtering-postgis-small
+
+  - id: bbox-filtering-duckdb-medium
+    image: doppaacr.azurecr.io/bbox-filtering-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - bbox-filtering-postgis-medium
+
+  - id: bbox-filtering-postgis-medium
+    image: doppaacr.azurecr.io/bbox-filtering-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - bbox-filtering-duckdb-medium
+
+  - id: bbox-filtering-duckdb-large
+    image: doppaacr.azurecr.io/bbox-filtering-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - bbox-filtering-postgis-large
+
+  - id: bbox-filtering-postgis-large
+    image: doppaacr.azurecr.io/bbox-filtering-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - bbox-filtering-duckdb-large
+
+  # ==================================================================
+  # RQ2 — National-scale spatial join (24 experiments)
+  # Single-node: DuckDB + PostGIS at small/medium/large (paired).
+  # Sedona: 2 strategies × 3 worker counts × 3 sizes, unpaired
+  # (each provisions its own cluster).
+  # ==================================================================
+
+  # ---- single-node ----
+  - id: national-scale-spatial-join-duckdb-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-duckdb:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: ["national-scale-spatial-join-postgis"]
+    related_script_ids:
+      - national-scale-spatial-join-postgis-small
 
-  - id: national-scale-spatial-join-postgis
+  - id: national-scale-spatial-join-postgis-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-postgis:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: ["national-scale-spatial-join-duckdb"]
+    related_script_ids:
+      - national-scale-spatial-join-duckdb-small
 
-  - id: national-scale-spatial-join-databricks-broadcast-2-nodes
+  - id: national-scale-spatial-join-duckdb-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - national-scale-spatial-join-postgis-medium
+
+  - id: national-scale-spatial-join-postgis-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids:
+      - national-scale-spatial-join-duckdb-medium
+
+  - id: national-scale-spatial-join-duckdb-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - national-scale-spatial-join-postgis-large
+
+  - id: national-scale-spatial-join-postgis-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids:
+      - national-scale-spatial-join-duckdb-large
+
+  # ---- Sedona broadcast strategy ----
+  - id: national-scale-spatial-join-databricks-broadcast-2-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-2-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids: []
 
-  - id: national-scale-spatial-join-databricks-broadcast-4-nodes
+  - id: national-scale-spatial-join-databricks-broadcast-2-nodes-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-2-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-broadcast-2-nodes-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-2-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-broadcast-4-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids: []
 
-  - id: national-scale-spatial-join-databricks-broadcast-8-nodes
+  - id: national-scale-spatial-join-databricks-broadcast-4-nodes-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-4-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-broadcast-4-nodes-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-4-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-broadcast-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids: []
 
-  - id: national-scale-spatial-join-databricks-partitioned-2-nodes
+  - id: national-scale-spatial-join-databricks-broadcast-8-nodes-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-broadcast-8-nodes-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids: []
+
+  # ---- Sedona partitioned strategy ----
+  - id: national-scale-spatial-join-databricks-partitioned-2-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-2-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids: []
 
-  - id: national-scale-spatial-join-databricks-partitioned-4-nodes
+  - id: national-scale-spatial-join-databricks-partitioned-2-nodes-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-2-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-partitioned-2-nodes-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-2-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-partitioned-4-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids: []
 
-  - id: national-scale-spatial-join-databricks-partitioned-8-nodes
+  - id: national-scale-spatial-join-databricks-partitioned-4-nodes-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-4-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-partitioned-4-nodes-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-4-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-partitioned-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids: []
 
+  - id: national-scale-spatial-join-databricks-partitioned-8-nodes-medium
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: medium
+    related_script_ids: []
+
+  - id: national-scale-spatial-join-databricks-partitioned-8-nodes-large
+    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: large
+    related_script_ids: []
+
+# ====================================================================
+# Out-of-scope benchmarks (kept commented for easy re-enable).
+# Entrypoints remain in src/presentation/entrypoints/ and the dispatch
+# cases remain in benchmark_runner.py. To re-enable, uncomment here,
+# in docker-compose.yml, and in the two CI workflow matrices.
+# ====================================================================
+
+#  - id: db-scan-blob-storage
+#    image: doppaacr.azurecr.io/db-scan-blob-storage:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["db-scan-postgis"]
+#
+#  - id: db-scan-postgis
+#    image: doppaacr.azurecr.io/db-scan-postgis:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["db-scan-blob-storage"]
+#
+#  - id: vector-tiles-single-tile-pmtiles
+#    image: doppaacr.azurecr.io/vector-tiles-single-tile-pmtiles:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["vector-tiles-single-tile-vmt"]
+#
+#  - id: vector-tiles-single-tile-vmt
+#    image: doppaacr.azurecr.io/vector-tiles-single-tile-vmt:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["vector-tiles-single-tile-pmtiles"]
+#
 #  - id: vector-tiles-100k-pmtiles
 #    image: doppaacr.azurecr.io/vector-tiles-100k-pmtiles:latest
 #    cpu: 3
@@ -350,3 +479,113 @@ experiments:
 #    memory_gb: 8
 #    dataset_size: small
 #    related_script_ids: ["vector-tiles-100k-pmtiles"]
+#
+#  - id: spatial-aggregation-grid-duckdb
+#    image: doppaacr.azurecr.io/spatial-aggregation-grid-duckdb:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["spatial-aggregation-grid-postgis"]
+#
+#  - id: spatial-aggregation-grid-postgis
+#    image: doppaacr.azurecr.io/spatial-aggregation-grid-postgis:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["spatial-aggregation-grid-duckdb"]
+#
+#  - id: ordered-range-query-duckdb
+#    image: doppaacr.azurecr.io/ordered-range-query-duckdb:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["ordered-range-query-postgis"]
+#
+#  - id: ordered-range-query-postgis
+#    image: doppaacr.azurecr.io/ordered-range-query-postgis:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["ordered-range-query-duckdb"]
+#
+#  - id: bbox-filtering-simple-local
+#    image: doppaacr.azurecr.io/bbox-filtering-simple-local:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["bbox-filtering-simple-blob-storage"]
+#
+#  - id: bbox-filtering-simple-blob-storage
+#    image: doppaacr.azurecr.io/bbox-filtering-simple-blob-storage:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["bbox-filtering-simple-local"]
+#
+#  - id: bbox-filtering-advanced-duckdb
+#    image: doppaacr.azurecr.io/bbox-filtering-advanced-duckdb:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["bbox-filtering-advanced-postgis"]
+#
+#  - id: bbox-filtering-advanced-postgis
+#    image: doppaacr.azurecr.io/bbox-filtering-advanced-postgis:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids: ["bbox-filtering-advanced-duckdb"]
+#
+#  - id: bbox-filtering-result-set-sizes-municipality-duckdb
+#    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-duckdb:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids:
+#      - bbox-filtering-result-set-sizes-municipality-local
+#      - bbox-filtering-result-set-sizes-municipality-postgis
+#
+#  - id: bbox-filtering-result-set-sizes-municipality-postgis
+#    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-postgis:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids:
+#      - bbox-filtering-result-set-sizes-municipality-local
+#      - bbox-filtering-result-set-sizes-municipality-duckdb
+#
+#  - id: bbox-filtering-result-set-sizes-municipality-local
+#    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-municipality-local:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids:
+#      - bbox-filtering-result-set-sizes-municipality-duckdb
+#      - bbox-filtering-result-set-sizes-municipality-postgis
+#
+#  - id: bbox-filtering-result-set-sizes-county-duckdb
+#    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-duckdb:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids:
+#      - bbox-filtering-result-set-sizes-county-local
+#      - bbox-filtering-result-set-sizes-county-postgis
+#
+#  - id: bbox-filtering-result-set-sizes-county-postgis
+#    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-postgis:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids:
+#      - bbox-filtering-result-set-sizes-county-local
+#      - bbox-filtering-result-set-sizes-county-duckdb
+#
+#  - id: bbox-filtering-result-set-sizes-county-local
+#    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-county-local:latest
+#    cpu: 3
+#    memory_gb: 8
+#    dataset_size: small
+#    related_script_ids:
+#      - bbox-filtering-result-set-sizes-county-duckdb
+#      - bbox-filtering-result-set-sizes-county-postgis

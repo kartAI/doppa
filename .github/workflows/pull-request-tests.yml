@@ -140,68 +140,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - service: db-scan-blob-storage
-            display_name: Blob Storage DB Scan
+          # ---- RQ1 query benchmarks ----
+          - service: point-in-polygon-lookup-duckdb
+            display_name: DuckDB Point-in-Polygon Lookup
 
-          - service: db-scan-postgis
-            display_name: PostGIS DB Scan
+          - service: point-in-polygon-lookup-postgis
+            display_name: PostGIS Point-in-Polygon Lookup
 
-          - service: bbox-filtering-advanced-duckdb
-            display_name: Advanced DuckDB Bounding Box Filtering
-
-          - service: bbox-filtering-advanced-postgis
-            display_name: Advanced PostGIS Bounding Box Filtering
-
-          - service: bbox-filtering-simple-local
-            display_name: Simple Shapefile Bounding Box Filtering
-
-          - service: bbox-filtering-simple-blob-storage
-            display_name: Simple GeoParquet Bounding Box Filtering
-
-          - service: bbox-filtering-result-set-sizes-neighborhood-duckdb
-            display_name: Neighborhood DuckDB Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-municipality-duckdb
-            display_name: Municipality DuckDB Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-county-duckdb
-            display_name: County DuckDB Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-neighborhood-postgis
-            display_name: Neighborhood PostGIS Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-municipality-postgis
-            display_name: Municipality PostGIS Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-county-postgis
-            display_name: County PostGIS Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-neighborhood-local
-            display_name: Neighborhood Local Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-municipality-local
-            display_name: Municipality Local Bounding Box Filtering Result Set Sizes
-
-          - service: bbox-filtering-result-set-sizes-county-local
-            display_name: County Local Bounding Box Filtering Result Set Sizes
-
-          - service: vector-tiles-single-tile-pmtiles
-            display_name: PMTiles Fetch Single Tile
-
-          - service: vector-tiles-single-tile-vmt
-            display_name: VMT Fetch Single Tile
-
-          - service: vector-tiles-100k-pmtiles
-            display_name: PMTiles Fetch 100 000 Tiles
-
-          - service: vector-tiles-100k-vmt
-            display_name: VMT Fetch 100 000 Tiles
-
-          - service: spatial-aggregation-grid-duckdb
-            display_name: DuckDB Spatial Aggregation by Grid Cell
-
-          - service: spatial-aggregation-grid-postgis
-            display_name: PostGIS Spatial Aggregation by Grid Cell
+          - service: point-in-polygon-lookup-local
+            display_name: Shapefile Point-in-Polygon Lookup
 
           - service: attribute-spatial-compound-filter-duckdb
             display_name: DuckDB Attribute + Spatial Compound Filter
@@ -209,32 +156,105 @@ jobs:
           - service: attribute-spatial-compound-filter-postgis
             display_name: PostGIS Attribute + Spatial Compound Filter
 
-          - service: ordered-range-query-duckdb
-            display_name: DuckDB Ordered Range Query with LIMIT
+          - service: attribute-spatial-compound-filter-local
+            display_name: Shapefile Attribute + Spatial Compound Filter
 
-          - service: ordered-range-query-postgis
-            display_name: PostGIS Ordered Range Query with LIMIT
+          - service: knn-search-duckdb
+            display_name: DuckDB KNN Search
 
-          - service: point-in-polygon-lookup-duckdb
-            display_name: DuckDB Point-in-Polygon Lookup
+          - service: knn-search-postgis
+            display_name: PostGIS KNN Search
 
-          - service: point-in-polygon-lookup-postgis
-            display_name: PostGIS Point-in-Polygon Lookup
+          - service: knn-search-local
+            display_name: Shapefile KNN Search
 
+          - service: bbox-filtering-duckdb
+            display_name: DuckDB Bounding Box Filtering
+
+          - service: bbox-filtering-postgis
+            display_name: PostGIS Bounding Box Filtering
+
+          - service: bbox-filtering-local
+            display_name: Shapefile Bounding Box Filtering
+
+          # ---- RQ2 national-scale spatial join ----
           - service: national-scale-spatial-join-duckdb
             display_name: DuckDB National Scale Spatial Join
 
           - service: national-scale-spatial-join-postgis
             display_name: PostGIS National Scale Spatial Join
 
-          - service: national-scale-spatial-join-databricks-2-nodes
-            display_name: Databricks National Scale Spatial Join - 2 Nodes
+          - service: national-scale-spatial-join-databricks-broadcast-2-nodes
+            display_name: Sedona National Scale Spatial Join - Broadcast - 2 Nodes
 
-          - service: national-scale-spatial-join-databricks-4-nodes
-            display_name: Databricks National Scale Spatial Join - 4 Nodes
+          - service: national-scale-spatial-join-databricks-broadcast-4-nodes
+            display_name: Sedona National Scale Spatial Join - Broadcast - 4 Nodes
 
-          - service: national-scale-spatial-join-databricks-8-nodes
-            display_name: Databricks National Scale Spatial Join - 8 Nodes
+          - service: national-scale-spatial-join-databricks-broadcast-8-nodes
+            display_name: Sedona National Scale Spatial Join - Broadcast - 8 Nodes
+
+          - service: national-scale-spatial-join-databricks-partitioned-2-nodes
+            display_name: Sedona National Scale Spatial Join - Partitioned - 2 Nodes
+
+          - service: national-scale-spatial-join-databricks-partitioned-4-nodes
+            display_name: Sedona National Scale Spatial Join - Partitioned - 4 Nodes
+
+          - service: national-scale-spatial-join-databricks-partitioned-8-nodes
+            display_name: Sedona National Scale Spatial Join - Partitioned - 8 Nodes
+
+          # ---- Out-of-scope (kept commented for easy re-enable) ----
+          # - service: db-scan-blob-storage
+          #   display_name: Blob Storage DB Scan
+          # - service: db-scan-postgis
+          #   display_name: PostGIS DB Scan
+          # - service: bbox-filtering-advanced-duckdb
+          #   display_name: Advanced DuckDB Bounding Box Filtering
+          # - service: bbox-filtering-advanced-postgis
+          #   display_name: Advanced PostGIS Bounding Box Filtering
+          # - service: bbox-filtering-simple-local
+          #   display_name: Simple Shapefile Bounding Box Filtering
+          # - service: bbox-filtering-simple-blob-storage
+          #   display_name: Simple GeoParquet Bounding Box Filtering
+          # - service: bbox-filtering-result-set-sizes-neighborhood-duckdb
+          #   display_name: Neighborhood DuckDB Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-municipality-duckdb
+          #   display_name: Municipality DuckDB Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-county-duckdb
+          #   display_name: County DuckDB Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-neighborhood-postgis
+          #   display_name: Neighborhood PostGIS Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-municipality-postgis
+          #   display_name: Municipality PostGIS Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-county-postgis
+          #   display_name: County PostGIS Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-neighborhood-local
+          #   display_name: Neighborhood Local Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-municipality-local
+          #   display_name: Municipality Local Bounding Box Filtering Result Set Sizes
+          # - service: bbox-filtering-result-set-sizes-county-local
+          #   display_name: County Local Bounding Box Filtering Result Set Sizes
+          # - service: vector-tiles-single-tile-pmtiles
+          #   display_name: PMTiles Fetch Single Tile
+          # - service: vector-tiles-single-tile-vmt
+          #   display_name: VMT Fetch Single Tile
+          # - service: vector-tiles-100k-pmtiles
+          #   display_name: PMTiles Fetch 100 000 Tiles
+          # - service: vector-tiles-100k-vmt
+          #   display_name: VMT Fetch 100 000 Tiles
+          # - service: spatial-aggregation-grid-duckdb
+          #   display_name: DuckDB Spatial Aggregation by Grid Cell
+          # - service: spatial-aggregation-grid-postgis
+          #   display_name: PostGIS Spatial Aggregation by Grid Cell
+          # - service: ordered-range-query-duckdb
+          #   display_name: DuckDB Ordered Range Query with LIMIT
+          # - service: ordered-range-query-postgis
+          #   display_name: PostGIS Ordered Range Query with LIMIT
+          # - service: national-scale-spatial-join-databricks-2-nodes
+          #   display_name: Databricks National Scale Spatial Join - 2 Nodes
+          # - service: national-scale-spatial-join-databricks-4-nodes
+          #   display_name: Databricks National Scale Spatial Join - 4 Nodes
+          # - service: national-scale-spatial-join-databricks-8-nodes
+          #   display_name: Databricks National Scale Spatial Join - 8 Nodes
 
     steps:
       - name: Checkout code

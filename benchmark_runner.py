@@ -60,7 +60,7 @@ def benchmark_runner() -> None:
         run_id=run_id, benchmark_run=benchmark_run, dataset_size=dataset_size
     )
 
-    match script_id:
+    match _strip_dataset_size_suffix(script_id):
         case "db-scan-blob-storage":
             db_scan_blob_storage()
             return
@@ -186,6 +186,20 @@ def benchmark_runner() -> None:
             return
         case _:
             raise ValueError("Script ID is invalid")
+
+
+def _strip_dataset_size_suffix(script_id: str) -> str:
+    """
+    Strip a trailing ``-{size}`` suffix from ``script_id`` so that experiment ids
+    like ``point-in-polygon-lookup-duckdb-medium`` dispatch to the same entrypoint
+    as the base id ``point-in-polygon-lookup-duckdb``. Size differentiation
+    happens via the ``--dataset-size`` runtime arg, not the dispatch key.
+    """
+    for size in DatasetSize:
+        suffix = f"-{size.value}"
+        if script_id.endswith(suffix):
+            return script_id[: -len(suffix)]
+    return script_id
 
 
 def _get_args() -> tuple[str, int, Optional[str], DatasetSize]:
