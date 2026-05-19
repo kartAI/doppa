@@ -1,4 +1,5 @@
-﻿import json
+﻿import hashlib
+import json
 import os
 import random
 import shutil
@@ -103,7 +104,7 @@ def _run_container_benchmark(
     memory_gb = str(experiment["memory_gb"])
     dataset_size = str(experiment.get("dataset_size", "small"))
 
-    container_group_name = f"benchmark-{experiment_id}"
+    container_group_name = _container_group_name(experiment_id)
     _delete_container_instance(container_group_name=container_group_name)
     _create_container_instance(
         run_id=run_id,
@@ -126,6 +127,17 @@ def _create_run_id() -> str:
     )
 
     return f"{date_prefix}-{suffix}"
+
+
+def _container_group_name(experiment_id: str) -> str:
+    name = f"benchmark-{experiment_id}"
+    if len(name) <= 63:
+        return name
+
+    digest = hashlib.sha1(experiment_id.encode()).hexdigest()[:8]
+    budget = 63 - len("benchmark-") - 1 - len(digest)
+    truncated = experiment_id[:budget].rstrip("-")
+    return f"benchmark-{truncated}-{digest}"
 
 
 # noinspection PyDeprecation
@@ -384,7 +396,7 @@ def _clear_all_container_instances(
 ) -> None:
     experiment_ids = [exp["id"] for exp in experiments]
     for experiment_id in experiment_ids:
-        _delete_container_instance(f"benchmark-{experiment_id}")
+        _delete_container_instance(_container_group_name(str(experiment_id)))
 
 
 if __name__ == "__main__":
