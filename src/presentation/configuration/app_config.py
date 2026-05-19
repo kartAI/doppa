@@ -26,6 +26,7 @@ def initialize_dependencies(
             "src.application.common.monitor",
 
             "src.presentation.entrypoints._factory",
+            "src.presentation.entrypoints._shapefile",
 
             "src.presentation.entrypoints.db_scan_blob_storage",
             "src.presentation.entrypoints.db_scan_postgis",
