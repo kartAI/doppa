@@ -173,14 +173,33 @@ experiments:
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: ["attribute-spatial-compound-filter-postgis"]
+    related_script_ids:
+      [
+        "attribute-spatial-compound-filter-local",
+        "attribute-spatial-compound-filter-postgis",
+      ]
+
+  - id: attribute-spatial-compound-filter-local
+    image: doppaacr.azurecr.io/attribute-spatial-compound-filter-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      [
+        "attribute-spatial-compound-filter-duckdb",
+        "attribute-spatial-compound-filter-postgis",
+      ]
 
   - id: attribute-spatial-compound-filter-postgis
     image: doppaacr.azurecr.io/attribute-spatial-compound-filter-postgis:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: ["attribute-spatial-compound-filter-duckdb"]
+    related_script_ids:
+      [
+        "attribute-spatial-compound-filter-duckdb",
+        "attribute-spatial-compound-filter-local",
+      ]
 
   - id: ordered-range-query-duckdb
     image: doppaacr.azurecr.io/ordered-range-query-duckdb:latest
@@ -201,14 +220,33 @@ experiments:
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: ["point-in-polygon-lookup-postgis"]
+    related_script_ids:
+      [
+        "point-in-polygon-lookup-local",
+        "point-in-polygon-lookup-postgis",
+      ]
+
+  - id: point-in-polygon-lookup-local
+    image: doppaacr.azurecr.io/point-in-polygon-lookup-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      [
+        "point-in-polygon-lookup-duckdb",
+        "point-in-polygon-lookup-postgis",
+      ]
 
   - id: point-in-polygon-lookup-postgis
     image: doppaacr.azurecr.io/point-in-polygon-lookup-postgis:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: ["point-in-polygon-lookup-duckdb"]
+    related_script_ids:
+      [
+        "point-in-polygon-lookup-duckdb",
+        "point-in-polygon-lookup-local",
+      ]
 
   - id: knn-search-duckdb
     image: doppaacr.azurecr.io/knn-search-duckdb:latest

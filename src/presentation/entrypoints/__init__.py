@@ -1,4 +1,5 @@
 ﻿from .attribute_spatial_compound_filter_duckdb import attribute_spatial_compound_filter_duckdb
+from .attribute_spatial_compound_filter_local import attribute_spatial_compound_filter_local
 from .attribute_spatial_compound_filter_postgis import attribute_spatial_compound_filter_postgis
 from .db_scan_blob_storage import db_scan_blob_storage
 from .db_scan_postgis import db_scan_postgis
@@ -21,6 +22,7 @@ from .knn_search_postgis import knn_search_postgis
 from .ordered_range_query_duckdb import ordered_range_query_duckdb
 from .ordered_range_query_postgis import ordered_range_query_postgis
 from .point_in_polygon_lookup_duckdb import point_in_polygon_lookup_duckdb
+from .point_in_polygon_lookup_local import point_in_polygon_lookup_local
 from .point_in_polygon_lookup_postgis import point_in_polygon_lookup_postgis
 from .setup_benchmarking_framework import setup_benchmarking_framework
 from .spatial_aggregation_grid_duckdb import spatial_aggregation_grid_duckdb
