@@ -41,15 +41,15 @@ experiments:
     dataset_size: small
     related_script_ids: ["bbox-filtering-simple-local"]
 
-  - id: bbox-filtering-result-set-sizes-neighborhood-duckdb
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-neighborhood-duckdb:latest
+  - id: bbox-filtering-duckdb
+    image: doppaacr.azurecr.io/bbox-filtering-duckdb:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
       [
-        "bbox-filtering-result-set-sizes-neighborhood-local",
-        "bbox-filtering-result-set-sizes-neighborhood-postgis",
+        "bbox-filtering-local",
+        "bbox-filtering-postgis",
       ]
 
   - id: bbox-filtering-result-set-sizes-municipality-duckdb
@@ -74,15 +74,15 @@ experiments:
         "bbox-filtering-result-set-sizes-county-local",
       ]
 
-  - id: bbox-filtering-result-set-sizes-neighborhood-postgis
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-neighborhood-postgis:latest
+  - id: bbox-filtering-postgis
+    image: doppaacr.azurecr.io/bbox-filtering-postgis:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
       [
-        "bbox-filtering-result-set-sizes-neighborhood-local",
-        "bbox-filtering-result-set-sizes-neighborhood-duckdb",
+        "bbox-filtering-local",
+        "bbox-filtering-duckdb",
       ]
 
   - id: bbox-filtering-result-set-sizes-municipality-postgis
@@ -107,15 +107,15 @@ experiments:
         "bbox-filtering-result-set-sizes-county-duckdb",
       ]
 
-  - id: bbox-filtering-result-set-sizes-neighborhood-local
-    image: doppaacr.azurecr.io/bbox-filtering-result-set-sizes-neighborhood-local:latest
+  - id: bbox-filtering-local
+    image: doppaacr.azurecr.io/bbox-filtering-local:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
     related_script_ids:
       [
-        "bbox-filtering-result-set-sizes-neighborhood-duckdb",
-        "bbox-filtering-result-set-sizes-neighborhood-postgis",
+        "bbox-filtering-duckdb",
+        "bbox-filtering-postgis",
       ]
 
   - id: bbox-filtering-result-set-sizes-municipality-local

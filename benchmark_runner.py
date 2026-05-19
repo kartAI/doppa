@@ -10,13 +10,13 @@ from src.presentation.entrypoints import (
     bbox_filtering_advanced_duckdb,
     bbox_filtering_simple_local,
     bbox_filtering_simple_blob_storage,
-    bbox_filtering_result_set_sizes_neighborhood_duckdb,
+    bbox_filtering_duckdb,
     bbox_filtering_result_set_sizes_municipality_duckdb,
     bbox_filtering_result_set_sizes_county_duckdb,
-    bbox_filtering_result_set_sizes_neighborhood_postgis,
+    bbox_filtering_postgis,
     bbox_filtering_result_set_sizes_municipality_postgis,
     bbox_filtering_result_set_sizes_county_postgis,
-    bbox_filtering_result_set_sizes_neighborhood_local,
+    bbox_filtering_local,
     bbox_filtering_result_set_sizes_municipality_local,
     bbox_filtering_result_set_sizes_county_local,
     vector_tiles_single_tile_pmtiles,
@@ -71,8 +71,8 @@ def benchmark_runner() -> None:
         case "bbox-filtering-simple-blob-storage":
             bbox_filtering_simple_blob_storage()
             return
-        case "bbox-filtering-result-set-sizes-neighborhood-duckdb":
-            bbox_filtering_result_set_sizes_neighborhood_duckdb()
+        case "bbox-filtering-duckdb":
+            bbox_filtering_duckdb()
             return
         case "bbox-filtering-result-set-sizes-municipality-duckdb":
             bbox_filtering_result_set_sizes_municipality_duckdb()
@@ -80,8 +80,8 @@ def benchmark_runner() -> None:
         case "bbox-filtering-result-set-sizes-county-duckdb":
             bbox_filtering_result_set_sizes_county_duckdb()
             return
-        case "bbox-filtering-result-set-sizes-neighborhood-postgis":
-            bbox_filtering_result_set_sizes_neighborhood_postgis()
+        case "bbox-filtering-postgis":
+            bbox_filtering_postgis()
             return
         case "bbox-filtering-result-set-sizes-municipality-postgis":
             bbox_filtering_result_set_sizes_municipality_postgis()
@@ -89,8 +89,8 @@ def benchmark_runner() -> None:
         case "bbox-filtering-result-set-sizes-county-postgis":
             bbox_filtering_result_set_sizes_county_postgis()
             return
-        case "bbox-filtering-result-set-sizes-neighborhood-local":
-            bbox_filtering_result_set_sizes_neighborhood_local()
+        case "bbox-filtering-local":
+            bbox_filtering_local()
             return
         case "bbox-filtering-result-set-sizes-municipality-local":
             bbox_filtering_result_set_sizes_municipality_local()
