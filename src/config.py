@@ -82,6 +82,7 @@ class Config:
         31.1565841,
     )
     TRONDHEIM_CENTER_WGS84: tuple[float, float] = (10.395, 63.430)
+    KNN_SEARCH_K: int = 10
 
     # STAC
     STAC_LICENSE = "CC-BY-4.0"

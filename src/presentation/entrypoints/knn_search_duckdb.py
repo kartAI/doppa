@@ -9,8 +9,6 @@ from src.domain.enums import StorageContainer, Theme, BenchmarkIteration, Datase
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
-K: int = 10
-
 
 @inject
 def knn_search_duckdb(
@@ -57,7 +55,7 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
             f"""
             SELECT * FROM read_parquet('{path}')
             ORDER BY ST_Distance(geometry, ST_Point(?, ?))
-            LIMIT {K};
+            LIMIT {Config.KNN_SEARCH_K};
             """,
             [lon, lat],
         ).fetchall()

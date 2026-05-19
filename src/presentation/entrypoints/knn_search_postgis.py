@@ -8,8 +8,6 @@ from src.domain.enums import BenchmarkIteration, DatasetSize
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
-K: int = 10
-
 
 @inject
 def knn_search_postgis(
@@ -46,7 +44,7 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
             SELECT *
             FROM {buildings_table}
             ORDER BY geometry <-> ST_SetSRID(ST_Point(:lon, :lat), 4326)
-            LIMIT {K};
+            LIMIT {Config.KNN_SEARCH_K};
             """
         )
 

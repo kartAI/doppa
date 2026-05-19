@@ -10,8 +10,6 @@ from src.domain.enums import StorageContainer, BenchmarkIteration, DatasetSize
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
-K: int = 10
-
 
 def knn_search_local() -> None:
     """
@@ -49,7 +47,7 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
         gdf = gdf.set_crs(epsg=4326, allow_override=True)
 
         distances = gdf.geometry.distance(reference)
-        nearest_idx = distances.nsmallest(K).index
+        nearest_idx = distances.nsmallest(Config.KNN_SEARCH_K).index
         return gdf.loc[nearest_idx]
 
     return _benchmark
