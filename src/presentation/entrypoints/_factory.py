@@ -21,10 +21,9 @@ def _get_dataset_size(
 def _build_query_id(base: str, dataset_size: DatasetSize) -> str:
     """
     Compose the ``query_id`` for a benchmark entrypoint from its base identifier and
-    the active dataset size. ``DatasetSize.SMALL`` returns the bare base so historical
-    SMALL-only run keys in blob storage remain accessible without renaming; other sizes
-    get a ``"-{size}"`` suffix so results stay keyed unambiguously.
+    the active dataset size by appending ``"-{size}"`` for every size, including
+    ``SMALL``. Historical SMALL run keys written under the bare ``base`` no longer
+    share a prefix with new SMALL runs, but every run is now self-describing about
+    the dataset tier it ran against.
     """
-    if dataset_size is DatasetSize.SMALL:
-        return base
     return f"{base}-{dataset_size.value}"
