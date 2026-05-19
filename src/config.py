@@ -135,5 +135,6 @@ class Config:
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH: str = (
         "/Shared/doppa/national_scale_spatial_join"
     )
-    DATABRICKS_MUNICIPALITIES_FILE: str = "counties.parquet"
+    DATABRICKS_MUNICIPALITIES_FILE: str = "municipalities.parquet"
+    MUNICIPALITIES_CONTRIBUTION_BLOB: str = "municipalities.parquet"
     AZURE_BLOB_STORAGE_ACCOUNT_KEY: str = os.getenv("AZURE_BLOB_STORAGE_ACCOUNT_KEY")
