@@ -1,4 +1,4 @@
-﻿from src.domain.enums import DatasetSize
+from src.domain.enums import DatasetSize
 from src.infra.infrastructure import Containers
 
 
@@ -28,46 +28,13 @@ def initialize_dependencies(
             "src.presentation.entrypoints._factory",
             "src.presentation.entrypoints._shapefile",
 
-            "src.presentation.entrypoints.db_scan_blob_storage",
-            "src.presentation.entrypoints.db_scan_postgis",
-
-            "src.presentation.entrypoints.bbox_filtering_advanced_duckdb",
-            "src.presentation.entrypoints.bbox_filtering_advanced_postgis",
-
-            "src.presentation.entrypoints.bbox_filtering_simple_local",
-            "src.presentation.entrypoints.bbox_filtering_simple_blob_storage",
-
             "src.presentation.entrypoints.bbox_filtering_duckdb",
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_municipality_duckdb",
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_county_duckdb",
-
             "src.presentation.entrypoints.bbox_filtering_postgis",
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_municipality_postgis",
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_county_postgis",
-
             "src.presentation.entrypoints.bbox_filtering_local",
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_municipality_local",
-            "src.presentation.entrypoints.bbox_filtering_result_set_sizes_county_local",
-
-            "src.presentation.entrypoints.vector_tiles_single_tile_pmtiles",
-            "src.presentation.entrypoints.vector_tiles_single_tile_vmt",
-
-            "src.presentation.entrypoints.vector_tiles_100k_vmt",
-            "src.presentation.entrypoints.vector_tiles_100k_pmtiles",
-
-            "src.presentation.entrypoints.spatial_aggregation_grid_duckdb",
-            "src.presentation.entrypoints.spatial_aggregation_grid_postgis",
-
-            "src.presentation.entrypoints.attribute_spatial_compound_filter_duckdb",
-            "src.presentation.entrypoints.attribute_spatial_compound_filter_local",
-            "src.presentation.entrypoints.attribute_spatial_compound_filter_postgis",
 
             "src.presentation.entrypoints.knn_search_duckdb",
             "src.presentation.entrypoints.knn_search_local",
             "src.presentation.entrypoints.knn_search_postgis",
-
-            "src.presentation.entrypoints.ordered_range_query_duckdb",
-            "src.presentation.entrypoints.ordered_range_query_postgis",
 
             "src.presentation.entrypoints.point_in_polygon_lookup_duckdb",
             "src.presentation.entrypoints.point_in_polygon_lookup_local",
@@ -79,9 +46,18 @@ def initialize_dependencies(
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_2_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_4_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_8_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_12_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_16_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_2_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_4_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_8_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_12_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_16_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_2_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_4_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_8_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_12_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_16_nodes",
 
             "src.presentation.entrypoints.setup_benchmarking_framework",
 

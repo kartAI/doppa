@@ -3,9 +3,8 @@
 doppa is a reproducible benchmarking framework for evaluating traditional geospatial query stacks
 (PostGIS, shapefiles) against cloud-native geospatial (CNG) alternatives (DuckDB over GeoParquet in
 blob storage, PMTiles/MVT vector tiles, and Apache Sedona on Databricks) across a range of real-world
-spatial query patterns: database scans, bounding-box filtering at varying result-set sizes, vector
-tile fetching, spatial aggregation over grids, attribute + spatial compound filters, ordered range
-queries, point-in-polygon lookups, and national-scale spatial joins.
+spatial query patterns: point-in-polygon lookups, k-nearest-neighbour search, bounding-box filtering,
+and a national-scale spatial join.
 
 Each query is packaged as an independent container image, executed on Azure Container Instances via
 an orchestrator, and produces cost and runtime metrics written back to blob storage for downstream
@@ -61,21 +60,23 @@ format internals to client-observed cost is measured end to end.
 **Cloud-native vector formats vs. traditional formats on cloud storage.** Empirical comparisons in the literature
 (Holmes 2023; Flatgeobuf 2024) measure write times and file sizes on local disk and do not place cloud-native and
 traditional formats side by side on cloud storage. doppa benchmarks GeoParquet over Azure Blob Storage (via DuckDB)
-against PostGIS on Azure Database for PostgreSQL, and PMTiles against WMS-style vector tiles, across the full catalog
-of query patterns: full scans, bounding-box filters at three result-set sizes (neighborhood, municipality, county),
-spatial aggregation over a grid, attribute-and-spatial compound filters, ordered range queries, point-in-polygon
-lookups, and a national-scale spatial join. The local-Shapefile entrypoints sit on the side as a laptop-workflow
-reference, with the Shapefile downloaded ahead of the timed scope to emulate that workflow rather than to bench the
-format on cloud storage.
+against PostGIS on Azure Database for PostgreSQL, and PMTiles against WMS-style vector tiles, across the active
+catalog of query patterns: point-in-polygon lookups, k-nearest-neighbour search, bounding-box filtering, and a
+national-scale spatial join. The local-Shapefile entrypoints sit on the side as a laptop-workflow reference, with the
+Shapefile downloaded ahead of the timed scope to emulate that workflow rather than to bench the format on cloud
+storage.
 
 **Single-node vs. distributed engines on the same vector workload.** Prior comparisons restrict themselves either to
 Spark-based systems (Pandey et al. 2018) or to single-node engines (Jackpine; Ray et al. 2011). doppa runs the same
-national-scale spatial join through DuckDB, PostGIS, and Apache Sedona on Databricks at three cluster sizes (2, 4, and
-8 workers), against the same `counties.parquet` boundary set and the same `BENCHMARK_DOPPA_DATA_RELEASE` building
-dataset. With the cluster-reuse measurement window in place, every engine reports elapsed time and cost over the same
-span — warmup outside the window, timed iterations on a warm engine — so the comparison is symmetric. Distributed-only
-metrics (shuffle bytes, stage durations, driver collection time) are recorded as additional columns rather than as
-replacements for the cross-engine ones.
+national-scale spatial join through DuckDB, PostGIS, and Apache Sedona on Databricks at five cluster sizes (2, 4, 8,
+12, and 16 workers), against the same `counties.parquet` boundary set and the same `BENCHMARK_DOPPA_DATA_RELEASE`
+building dataset. Three Sedona join-strategy variants are compared at each cluster size: `default` (no hint; Spark's
+cost-based optimizer picks the plan), `broadcast` (small-side `broadcast()` hint forcing `BroadcastIndexJoin`), and
+`partitioned` (Sedona KDB-tree partitioner forcing `RangeJoin`). The `default` variant is the apples-to-apples baseline
+against which `broadcast` and `partitioned` are evaluated. With the cluster-reuse measurement window in place, every
+engine reports elapsed time and cost over the same span — warmup outside the window, timed iterations on a warm engine
+— so the comparison is symmetric. Distributed-only metrics (shuffle bytes, stage durations, driver collection time)
+are recorded as additional columns rather than as replacements for the cross-engine ones.
 
 The methodological gap noted in the thesis — the absence of effect-size reporting and uncertainty quantification in
 spatial benchmarks — is handled in downstream analysis. The framework's contribution is to persist every iteration's
@@ -115,7 +116,7 @@ hive-partitioned layout, so downstream analysis can read full distributions rath
 | DuckDB                  | Single-node, in-container        | GeoParquet over Azure Blob Storage (`read_parquet('az://...')`)                        |
 | PostGIS                 | Single-node, managed service     | Azure Database for PostgreSQL Flexible Server                                          |
 | GeoPandas + Shapefile   | Single-node, local-disk baseline | Shapefile pre-downloaded to the container before the timed scope                       |
-| Apache Sedona           | Distributed                      | Azure Databricks, 2 / 4 / 8 `Standard_D4s_v3` workers, reading GeoParquet via ABFS     |
+| Apache Sedona           | Distributed                      | Azure Databricks, 2 / 4 / 8 / 12 / 16 `Standard_D4s_v3` workers, reading GeoParquet via ABFS |
 | PMTiles                 | Cloud-native vector tiles        | PMTiles archive in blob storage, accessed via HTTP range reads                         |
 | WMS-style vector tiles  | Traditional vector tiles         | `doppa-vmt` web app for containers, tiles assembled on demand                          |
 
@@ -139,10 +140,14 @@ Cluster provisioning and termination are deliberately outside the cost window. T
 running queries on an optimally warm engine, not the cost of cold-starting one per query. Provisioning is a one-time
 setup cost in any production deployment, amortized over many queries rather than billed per query.
 
-The notebook (`src/presentation/databricks/national_scale_spatial_join.py`) registers a `SparkListener` that aggregates
-per-stage metrics — executor input bytes, shuffle read and write bytes, stage durations, executor run time — and returns
-them alongside the query result via `dbutils.notebook.exit`. These phase metrics are persisted on the per-iteration
-sample so the distributed runtime can be decomposed into read, shuffle, and driver collection time.
+Three notebook variants live under `src/presentation/databricks/`:
+`national_scale_spatial_join_broadcast.py` (wraps `broadcast()` around the small side),
+`national_scale_spatial_join_partitioned.py` (sets the Sedona KDB-tree partitioner), and
+`national_scale_spatial_join_default.py` (no strategy hint; Spark's cost-based optimizer picks the plan, used as the
+apples-to-apples baseline). Each registers a `SparkListener` that aggregates per-stage metrics — executor input bytes,
+shuffle read and write bytes, stage durations, executor run time — and returns them alongside the query result via
+`dbutils.notebook.exit`. These phase metrics are persisted on the per-iteration sample so the distributed runtime can
+be decomposed into read, shuffle, and driver collection time.
 
 ### Pairing and randomization
 
@@ -158,33 +163,42 @@ At any moment one pair group is in flight; within that group every member runs o
 
 ### Test matrix
 
-The matrix below is the active set of 52 experiments grouped into 33 parallel pair groups. Each cell lists the
+The matrix below is the active set of 52 experiments grouped into 40 parallel pair groups. Each cell lists the
 engines that launch together in the same wall-clock window; size suffixes (`-small`, `-medium`, `-large`) are
 appended to the experiment ids in `benchmarks.yml` and forwarded to each container as `--dataset-size`. Shapefile
 (`local`) only participates at the `small` tier per the thesis methodology — it represents the laptop-workflow
 reference, not a scalable engine.
 
-**RQ1 — Single-machine query benchmarks** (28 experiments, 12 pair groups)
+**RQ1 — Single-machine query benchmarks** (15 experiments, 6 pair groups)
 
-| Query type                         | `small` (3-way)              | `medium` (2-way) | `large` (2-way)  |
-|------------------------------------|------------------------------|------------------|------------------|
-| `point-in-polygon-lookup`          | duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
-| `attribute-spatial-compound-filter`| duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
-| `knn-search`                       | duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
-| `bbox-filtering`                   | duckdb · postgis · local     | duckdb · postgis | duckdb · postgis |
+| Query type                | `small` (3-way)          | `large` (2-way)  |
+|---------------------------|--------------------------|------------------|
+| `point-in-polygon-lookup` | duckdb · postgis · local | duckdb · postgis |
+| `knn-search`              | duckdb · postgis · local | duckdb · postgis |
+| `bbox-filtering`          | duckdb · postgis · local | duckdb · postgis |
 
-**RQ2 — National-scale spatial join** (24 experiments, 21 pair groups)
+The medium tier was dropped from the surviving RQ1 queries and `attribute-spatial-compound-filter` was removed
+across the board (issue #281); the 13 freed cells are reinvested in RQ2.
 
-| Engine / strategy                       | `small`                  | `medium`                 | `large`                  |
-|-----------------------------------------|--------------------------|--------------------------|--------------------------|
-| Single-node (paired)                    | duckdb · postgis         | duckdb · postgis         | duckdb · postgis         |
-| Sedona `broadcast` (unpaired)           | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes |
-| Sedona `partitioned` (unpaired)         | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes | 2 nodes / 4 nodes / 8 nodes |
+**RQ2 — National-scale spatial join** (37 experiments, 34 pair groups)
+
+| Engine / strategy                | `small`               | `medium`              | `large`                              |
+|----------------------------------|-----------------------|-----------------------|--------------------------------------|
+| Single-node (paired)             | duckdb · postgis      | duckdb · postgis      | duckdb · postgis                     |
+| Sedona `broadcast` (unpaired)    | 4 / 8 nodes           | 2 / 4 / 8 nodes       | 2 / 4 / 8 / 12 / 16 nodes            |
+| Sedona `partitioned` (unpaired)  | 4 / 8 nodes           | 2 / 4 / 8 nodes       | 2 / 4 / 8 / 12 / 16 nodes            |
+| Sedona `default` (unpaired)      | 2 / 4 / 8 nodes       | 2 / 4 / 8 nodes       | 2 / 4 / 8 / 12 / 16 nodes            |
 
 Cells in the **paired** rows list every engine that launches in the same wall-clock window (one ACI each, started
 concurrently via `ThreadPoolExecutor`). Cells in the **unpaired** rows list separate experiments that each run alone
 in their own pair group — they share a row only because they share a strategy/size, not because they co-launch.
 Sedona variants are unpaired because each provisions its own Databricks cluster.
+
+The 2-node row is omitted at `small` for `broadcast` and `partitioned`: at ~5M polygons those configurations were
+weakly differentiated from `default`; the freed cells fund the 12-/16-node extension of the scaling curve at `large`.
+The `default` strategy applies no `broadcast()` hint and no Sedona partitioner configuration; Spark's cost-based
+optimizer picks the plan, so it serves as the apples-to-apples baseline against which `broadcast` and `partitioned`
+are compared.
 
 ## Dataset layout
 
@@ -405,18 +419,19 @@ workspace is required.
 
 ##### 1. Request vCPU quota
 
-The benchmarks run clusters with 2, 4, and 8 worker nodes. Each `Standard_D4s_v3` node uses 4 vCPUs, so the
-8-node cluster requires 32 vCPUs (plus the driver). The default quota in most regions is 10 vCPUs.
+The benchmarks run clusters with 2, 4, 8, 12, and 16 worker nodes. Each `Standard_D4s_v3` node uses 4 vCPUs, so the
+16-node cluster requires 64 vCPUs (plus the driver, 4 vCPU). The default quota in most regions is 10 vCPUs.
 
 To request a quota increase:
 
 1. Navigate to the [Azure Portal](https://portal.azure.com) → **Subscriptions** → your subscription →
    **Settings** → **Usage + quotas**
 2. Filter by region (e.g. Sweden Central) and search for `Standard DSv3 Family vCPUs`
-3. Click the pencil icon and request at least **40 vCPUs**
+3. Click the pencil icon and request at least **72 vCPUs** (16 workers × 4 vCPU + 8 vCPU driver headroom)
 4. Provide a justification (e.g. "Running distributed Spark benchmarks") and submit
 
-Quota increases for small VM families are typically approved automatically within minutes.
+Quota increases for small VM families are typically approved automatically within minutes. The 12-node row in the
+RQ2 matrix exists partly as a hedge in case the 16-node quota request is delayed or only partially approved.
 
 ##### 2. Create the workspace
 
@@ -566,7 +581,7 @@ See the table below for more information about the available flags.
 
 | Flag              | Format / Pattern             | Meaning                                                                                                                                                       |
 |-------------------|------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--script-id`     | `<query-type>-<service>`     | Identifies which query is being executed. `<query-type>` examples: `db-scan`, `bbox-filtering`. `<service>` examples: `blob-storage`, `postgis`.              |
+| `--script-id`     | `<query-type>-<service>`     | Identifies which query is being executed. `<query-type>` examples: `point-in-polygon-lookup`, `bbox-filtering`, `knn-search`, `national-scale-spatial-join`. `<service>` examples: `duckdb`, `postgis`, `local`.              |
 | `--benchmark-run` | `int`                        | Identifier that tells which iteration of the benchmarking is currently running. This is to run the benchmarks on multiple container instances.                |
 | `--run-id`        | `<current-date>-<random-id>` | Identifies a benchmark run. Shared across all queries in a single orchestrated run. Date format: `yyyy-mm-dd`; random ID: 6-character uppercase alphanumeric. |
 | `--dataset-size`  | `small\|medium\|large`       | Dataset tier the benchmark runs against. Defaults to `small`. Bound to `container.config.dataset_size` and rehydrated as `DatasetSize` via `_get_dataset_size()`. |

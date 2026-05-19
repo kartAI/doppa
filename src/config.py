@@ -141,11 +141,17 @@ class Config:
     DATABRICKS_LOCAL_SCRIPT_PATH_PARTITIONED: str = (
         "src/presentation/databricks/national_scale_spatial_join_partitioned.py"
     )
+    DATABRICKS_LOCAL_SCRIPT_PATH_DEFAULT: str = (
+        "src/presentation/databricks/national_scale_spatial_join_default.py"
+    )
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH_BROADCAST: str = (
         "/Shared/doppa/national_scale_spatial_join_broadcast"
     )
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH_PARTITIONED: str = (
         "/Shared/doppa/national_scale_spatial_join_partitioned"
+    )
+    DATABRICKS_WORKSPACE_NOTEBOOK_PATH_DEFAULT: str = (
+        "/Shared/doppa/national_scale_spatial_join_default"
     )
     DATABRICKS_MUNICIPALITIES_FILE: str = "municipalities.parquet"
     MUNICIPALITIES_CONTRIBUTION_BLOB: str = "municipalities.parquet"
