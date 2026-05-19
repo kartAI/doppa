@@ -38,9 +38,12 @@ from src.presentation.entrypoints import (
     point_in_polygon_lookup_postgis,
     national_scale_spatial_join_duckdb,
     national_scale_spatial_join_postgis,
-    national_scale_spatial_join_databricks_2_nodes,
-    national_scale_spatial_join_databricks_4_nodes,
-    national_scale_spatial_join_databricks_8_nodes,
+    national_scale_spatial_join_databricks_broadcast_2_nodes,
+    national_scale_spatial_join_databricks_broadcast_4_nodes,
+    national_scale_spatial_join_databricks_broadcast_8_nodes,
+    national_scale_spatial_join_databricks_partitioned_2_nodes,
+    national_scale_spatial_join_databricks_partitioned_4_nodes,
+    national_scale_spatial_join_databricks_partitioned_8_nodes,
 )
 
 
@@ -160,14 +163,23 @@ def benchmark_runner() -> None:
         case "national-scale-spatial-join-postgis":
             national_scale_spatial_join_postgis()
             return
-        case "national-scale-spatial-join-databricks-2-nodes":
-            national_scale_spatial_join_databricks_2_nodes()
+        case "national-scale-spatial-join-databricks-broadcast-2-nodes":
+            national_scale_spatial_join_databricks_broadcast_2_nodes()
             return
-        case "national-scale-spatial-join-databricks-4-nodes":
-            national_scale_spatial_join_databricks_4_nodes()
+        case "national-scale-spatial-join-databricks-broadcast-4-nodes":
+            national_scale_spatial_join_databricks_broadcast_4_nodes()
             return
-        case "national-scale-spatial-join-databricks-8-nodes":
-            national_scale_spatial_join_databricks_8_nodes()
+        case "national-scale-spatial-join-databricks-broadcast-8-nodes":
+            national_scale_spatial_join_databricks_broadcast_8_nodes()
+            return
+        case "national-scale-spatial-join-databricks-partitioned-2-nodes":
+            national_scale_spatial_join_databricks_partitioned_2_nodes()
+            return
+        case "national-scale-spatial-join-databricks-partitioned-4-nodes":
+            national_scale_spatial_join_databricks_partitioned_4_nodes()
+            return
+        case "national-scale-spatial-join-databricks-partitioned-8-nodes":
+            national_scale_spatial_join_databricks_partitioned_8_nodes()
             return
         case "setup-framework":
             setup_benchmarking_framework()

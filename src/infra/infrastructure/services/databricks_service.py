@@ -2,6 +2,7 @@ import base64
 import json
 import time
 from pathlib import Path
+from typing import Literal
 
 import requests
 
@@ -16,6 +17,25 @@ from src.domain.enums import (
     DatabricksRunResultState,
     DatasetSize,
 )
+
+
+NotebookVariant = Literal["broadcast", "partitioned"]
+
+
+def _local_script_path(notebook_variant: NotebookVariant) -> str:
+    if notebook_variant == "broadcast":
+        return Config.DATABRICKS_LOCAL_SCRIPT_PATH_BROADCAST
+    if notebook_variant == "partitioned":
+        return Config.DATABRICKS_LOCAL_SCRIPT_PATH_PARTITIONED
+    raise ValueError(f"Unknown notebook_variant: {notebook_variant!r}")
+
+
+def _workspace_notebook_path(notebook_variant: NotebookVariant) -> str:
+    if notebook_variant == "broadcast":
+        return Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH_BROADCAST
+    if notebook_variant == "partitioned":
+        return Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH_PARTITIONED
+    raise ValueError(f"Unknown notebook_variant: {notebook_variant!r}")
 
 
 class DatabricksService(IDatabricksService):
@@ -41,13 +61,19 @@ class DatabricksService(IDatabricksService):
             "Content-Type": "application/json",
         }
 
-    def create_cluster(self, num_workers: int) -> str:
-        cluster_id = self._create_cluster(num_workers=num_workers)
+    def create_cluster(
+        self,
+        num_workers: int,
+        notebook_variant: NotebookVariant,
+    ) -> str:
+        cluster_id = self._create_cluster(
+            num_workers=num_workers, notebook_variant=notebook_variant
+        )
         try:
             self._install_libraries(cluster_id=cluster_id)
             self._wait_for_cluster_running(cluster_id=cluster_id)
             self._wait_for_libraries_installed(cluster_id=cluster_id)
-            self._upload_notebook()
+            self._upload_notebook(notebook_variant=notebook_variant)
         except Exception:
             logger.warning(
                 f"Cluster {cluster_id} provisioning failed before it was returned to caller. "
@@ -62,22 +88,28 @@ class DatabricksService(IDatabricksService):
                 )
             raise
         logger.info(
-            f"Cluster {cluster_id} ready with {num_workers} worker(s). "
-            f"Libraries installed, notebook uploaded."
+            f"Cluster {cluster_id} ready with {num_workers} worker(s) for "
+            f"'{notebook_variant}' variant. Libraries installed, notebook uploaded."
         )
         return cluster_id
 
     def submit_to_existing_cluster(
-        self, cluster_id: str, num_workers: int, dataset_size: DatasetSize
+        self,
+        cluster_id: str,
+        num_workers: int,
+        dataset_size: DatasetSize,
+        notebook_variant: NotebookVariant,
     ) -> DatabricksRunResult:
         run_id = self._submit_run(
             cluster_id=cluster_id,
             num_workers=num_workers,
             dataset_size=dataset_size,
+            notebook_variant=notebook_variant,
         )
         logger.info(
             f"Submitted Databricks run {run_id} on cluster {cluster_id} "
-            f"against dataset size '{dataset_size.value}'. Polling for completion."
+            f"('{notebook_variant}' variant) against dataset size "
+            f"'{dataset_size.value}'. Polling for completion."
         )
         task_run_id = self._wait_for_run(run_id)
         return self._fetch_notebook_output(task_run_id)
@@ -96,10 +128,15 @@ class DatabricksService(IDatabricksService):
             )
         logger.info(f"Permanently deleted cluster {cluster_id}.")
 
-    def _create_cluster(self, num_workers: int) -> str:
+    def _create_cluster(
+        self, num_workers: int, notebook_variant: NotebookVariant
+    ) -> str:
         single_user_name = self._get_current_user_name()
         payload = {
-            "cluster_name": f"doppa-national-scale-spatial-join-{num_workers}-nodes",
+            "cluster_name": (
+                f"doppa-national-scale-spatial-join-{notebook_variant}-"
+                f"{num_workers}-nodes"
+            ),
             "spark_version": Config.DATABRICKS_SPARK_VERSION,
             "node_type_id": Config.DATABRICKS_NODE_TYPE_ID,
             "num_workers": num_workers,
@@ -270,8 +307,10 @@ class DatabricksService(IDatabricksService):
             return library["pypi"].get("package", "pypi:?")
         return next(iter(library.keys()), "library")
 
-    def _upload_notebook(self) -> None:
-        folder = str(Path(Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH).parent)
+    def _upload_notebook(self, notebook_variant: NotebookVariant) -> None:
+        local_script_path = _local_script_path(notebook_variant)
+        workspace_notebook_path = _workspace_notebook_path(notebook_variant)
+        folder = str(Path(workspace_notebook_path).parent)
         mkdirs_response = requests.post(
             f"{self._host}/api/2.0/workspace/mkdirs",
             headers=self._headers,
@@ -284,13 +323,13 @@ class DatabricksService(IDatabricksService):
             )
 
         content = base64.b64encode(
-            Path(Config.DATABRICKS_LOCAL_SCRIPT_PATH).read_bytes()
+            Path(local_script_path).read_bytes()
         ).decode("utf-8")
         response = requests.post(
             f"{self._host}/api/2.0/workspace/import",
             headers=self._headers,
             json={
-                "path": Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH,
+                "path": workspace_notebook_path,
                 "format": "SOURCE",
                 "language": "PYTHON",
                 "content": content,
@@ -303,19 +342,27 @@ class DatabricksService(IDatabricksService):
                 f"Failed to upload notebook to workspace: {response.status_code}: {response.text}"
             )
         logger.info(
-            f"Uploaded notebook to '{Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH}'."
+            f"Uploaded '{notebook_variant}' notebook to '{workspace_notebook_path}'."
         )
 
     def _submit_run(
-        self, cluster_id: str, num_workers: int, dataset_size: DatasetSize
+        self,
+        cluster_id: str,
+        num_workers: int,
+        dataset_size: DatasetSize,
+        notebook_variant: NotebookVariant,
     ) -> str:
+        workspace_notebook_path = _workspace_notebook_path(notebook_variant)
         payload = {
-            "run_name": f"national-scale-spatial-join-{num_workers}-nodes-{dataset_size.value}",
+            "run_name": (
+                f"national-scale-spatial-join-{notebook_variant}-"
+                f"{num_workers}-nodes-{dataset_size.value}"
+            ),
             "tasks": [
                 {
                     "task_key": "spatial-join",
                     "notebook_task": {
-                        "notebook_path": Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH,
+                        "notebook_path": workspace_notebook_path,
                         "base_parameters": {
                             "account_key": Config.AZURE_BLOB_STORAGE_ACCOUNT_KEY,
                             "account_name": Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME,

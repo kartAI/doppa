@@ -76,9 +76,12 @@ def initialize_dependencies(
             "src.presentation.entrypoints.national_scale_spatial_join_duckdb",
             "src.presentation.entrypoints.national_scale_spatial_join_postgis",
 
-            "src.presentation.entrypoints.national_scale_spatial_join_databricks_2_nodes",
-            "src.presentation.entrypoints.national_scale_spatial_join_databricks_4_nodes",
-            "src.presentation.entrypoints.national_scale_spatial_join_databricks_8_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_2_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_4_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_broadcast_8_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_2_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_4_nodes",
+            "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_8_nodes",
 
             "src.presentation.entrypoints.setup_benchmarking_framework",
 

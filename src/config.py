@@ -135,11 +135,17 @@ class Config:
     )
     DATABRICKS_SEDONA_PYPI_PACKAGE: str = "apache-sedona==1.7.1"
     DATABRICKS_GEOPANDAS_PYPI_PACKAGE: str = "geopandas==0.14.4"
-    DATABRICKS_LOCAL_SCRIPT_PATH: str = (
-        "src/presentation/databricks/national_scale_spatial_join.py"
+    DATABRICKS_LOCAL_SCRIPT_PATH_BROADCAST: str = (
+        "src/presentation/databricks/national_scale_spatial_join_broadcast.py"
     )
-    DATABRICKS_WORKSPACE_NOTEBOOK_PATH: str = (
-        "/Shared/doppa/national_scale_spatial_join"
+    DATABRICKS_LOCAL_SCRIPT_PATH_PARTITIONED: str = (
+        "src/presentation/databricks/national_scale_spatial_join_partitioned.py"
+    )
+    DATABRICKS_WORKSPACE_NOTEBOOK_PATH_BROADCAST: str = (
+        "/Shared/doppa/national_scale_spatial_join_broadcast"
+    )
+    DATABRICKS_WORKSPACE_NOTEBOOK_PATH_PARTITIONED: str = (
+        "/Shared/doppa/national_scale_spatial_join_partitioned"
     )
     DATABRICKS_MUNICIPALITIES_FILE: str = "municipalities.parquet"
     MUNICIPALITIES_CONTRIBUTION_BLOB: str = "municipalities.parquet"
