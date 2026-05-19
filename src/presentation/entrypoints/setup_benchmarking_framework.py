@@ -36,36 +36,79 @@ def setup_benchmarking_framework(
     ],
 ) -> None:
     """
-    Provisions the benchmarking framework's input data in five steps: (1) run the
+    Provisions the benchmarking framework's input data in six steps: (1) run the
     test dataset pipeline to produce the small buildings dataset, (2) synthesize
     the medium dataset from it, (3) synthesize the large dataset, (4) seed
     PostgreSQL with each ``buildings_<size>`` table plus a GIST spatial index,
-    and (5) materialize and upload the shapefile copy of the small buildings
-    dataset to blob storage.
+    (5) materialize and upload the shapefile copy of the small buildings dataset
+    to blob storage, and (6) republish ``municipalities.parquet`` from the
+    ``contributions`` container to the ``metadata`` container so the RQ2 spatial
+    join benchmarks find it at the expected location.
     """
     logger.info("Starting benchmarking framework setup...")
 
-    logger.info("Step 1/5: Running test dataset pipeline...")
+    logger.info("Step 1/6: Running test dataset pipeline...")
     release = test_dataset_service.run_pipeline()
     logger.info(f"Test dataset pipeline complete. Release: '{release}'")
 
-    logger.info("Step 2/5: Synthesizing medium dataset...")
+    logger.info("Step 2/6: Synthesizing medium dataset...")
     dataset_synthesis_service.run_pipeline(release=release, target_size=DatasetSize.MEDIUM)
     logger.info("Medium dataset synthesis complete.")
 
-    logger.info("Step 3/5: Synthesizing large dataset...")
+    logger.info("Step 3/6: Synthesizing large dataset...")
     dataset_synthesis_service.run_pipeline(release=release, target_size=DatasetSize.LARGE)
     logger.info("Large dataset synthesis complete.")
 
-    logger.info("Step 4/5: Seeding Postgres with buildings...")
+    logger.info("Step 4/6: Seeding Postgres with buildings...")
     _postgres_buildings_seed(release=release)
     logger.info("Postgres seed complete.")
 
-    logger.info("Step 5/5: Creating shapefile copy in blob storage...")
+    logger.info("Step 5/6: Creating shapefile copy in blob storage...")
     _create_shapefile_copy(release=release)
     logger.info("Shapefile copy complete.")
 
+    logger.info("Step 6/6: Publishing municipalities.parquet to metadata container...")
+    _publish_municipalities()
+    logger.info("Municipalities publish complete.")
+
     logger.info("Benchmarking framework setup complete.")
+
+
+@inject
+def _publish_municipalities(
+    blob_storage_service: IBlobStorageService = Provide[
+        Containers.blob_storage_service
+    ],
+) -> None:
+    source_blob = Config.MUNICIPALITIES_CONTRIBUTION_BLOB
+    destination_blob = Config.DATABRICKS_MUNICIPALITIES_FILE
+
+    logger.info(
+        f"Downloading '{source_blob}' from container '{StorageContainer.CONTRIBUTION.value}'..."
+    )
+    payload = blob_storage_service.download_file(
+        container_name=StorageContainer.CONTRIBUTION,
+        blob_name=source_blob,
+    )
+
+    if payload is None:
+        raise RuntimeError(
+            f"Source blob '{source_blob}' is missing from container "
+            f"'{StorageContainer.CONTRIBUTION.value}'. Run the "
+            f"'04-kommuner-contribution' notebook in the 'doppa-data-contribution' "
+            f"repository against the target storage account before re-running "
+            f"setup_benchmarking_framework."
+        )
+
+    blob_storage_service.upload_file(
+        container_name=StorageContainer.METADATA,
+        blob_name=destination_blob,
+        data=payload,
+    )
+    logger.info(
+        f"Uploaded '{destination_blob}' to container '{StorageContainer.METADATA.value}' "
+        f"({len(payload)} bytes)."
+    )
 
 
 @inject
