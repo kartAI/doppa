@@ -210,6 +210,39 @@ experiments:
     dataset_size: small
     related_script_ids: ["point-in-polygon-lookup-duckdb"]
 
+  - id: knn-search-duckdb
+    image: doppaacr.azurecr.io/knn-search-duckdb:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      [
+        "knn-search-local",
+        "knn-search-postgis",
+      ]
+
+  - id: knn-search-local
+    image: doppaacr.azurecr.io/knn-search-local:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      [
+        "knn-search-duckdb",
+        "knn-search-postgis",
+      ]
+
+  - id: knn-search-postgis
+    image: doppaacr.azurecr.io/knn-search-postgis:latest
+    cpu: 3
+    memory_gb: 8
+    dataset_size: small
+    related_script_ids:
+      [
+        "knn-search-duckdb",
+        "knn-search-local",
+      ]
+
   - id: national-scale-spatial-join-duckdb
     image: doppaacr.azurecr.io/national-scale-spatial-join-duckdb:latest
     cpu: 3
