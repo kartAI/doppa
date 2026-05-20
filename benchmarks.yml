@@ -161,6 +161,8 @@ experiments:
     memory_gb: 8
     dataset_size: small
     related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-small
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-small
       - national-scale-spatial-join-postgis-small
 
   - id: national-scale-spatial-join-postgis-small
@@ -169,6 +171,8 @@ experiments:
     memory_gb: 8
     dataset_size: small
     related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-small
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-small
       - national-scale-spatial-join-duckdb-small
 
   - id: national-scale-spatial-join-duckdb-medium
@@ -177,6 +181,8 @@ experiments:
     memory_gb: 8
     dataset_size: medium
     related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-medium
       - national-scale-spatial-join-postgis-medium
 
   - id: national-scale-spatial-join-postgis-medium
@@ -185,6 +191,8 @@ experiments:
     memory_gb: 8
     dataset_size: medium
     related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-medium
       - national-scale-spatial-join-duckdb-medium
 
   - id: national-scale-spatial-join-duckdb-large
@@ -193,6 +201,7 @@ experiments:
     memory_gb: 8
     dataset_size: large
     related_script_ids:
+      - national-scale-spatial-join-databricks-default-8-nodes-large
       - national-scale-spatial-join-postgis-large
 
   - id: national-scale-spatial-join-postgis-large
@@ -201,6 +210,7 @@ experiments:
     memory_gb: 8
     dataset_size: large
     related_script_ids:
+      - national-scale-spatial-join-databricks-default-8-nodes-large
       - national-scale-spatial-join-duckdb-large
 
   # ---- Sedona broadcast strategy ----
@@ -209,70 +219,88 @@ experiments:
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-4-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
+      - national-scale-spatial-join-databricks-default-2-nodes-medium
 
   - id: national-scale-spatial-join-databricks-broadcast-2-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-2-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-16-nodes-large
 
   - id: national-scale-spatial-join-databricks-broadcast-4-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-8-nodes-small
+      - national-scale-spatial-join-databricks-partitioned-4-nodes-small
 
   - id: national-scale-spatial-join-databricks-broadcast-4-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-8-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-4-nodes-medium
 
   - id: national-scale-spatial-join-databricks-broadcast-4-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-12-nodes-large
 
   - id: national-scale-spatial-join-databricks-broadcast-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-small
+      - national-scale-spatial-join-duckdb-small
+      - national-scale-spatial-join-postgis-small
 
   - id: national-scale-spatial-join-databricks-broadcast-8-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-medium
+      - national-scale-spatial-join-duckdb-medium
+      - national-scale-spatial-join-postgis-medium
 
   - id: national-scale-spatial-join-databricks-broadcast-8-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-8-nodes-large
 
   - id: national-scale-spatial-join-databricks-broadcast-12-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-12-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-4-nodes-large
 
   - id: national-scale-spatial-join-databricks-broadcast-16-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-16-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-2-nodes-large
 
   # ---- Sedona partitioned strategy ----
   - id: national-scale-spatial-join-databricks-partitioned-2-nodes-medium
@@ -280,70 +308,88 @@ experiments:
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-4-nodes-medium
+      - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
+      - national-scale-spatial-join-databricks-default-2-nodes-medium
 
   - id: national-scale-spatial-join-databricks-partitioned-2-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-2-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-16-nodes-large
 
   - id: national-scale-spatial-join-databricks-partitioned-4-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-8-nodes-small
+      - national-scale-spatial-join-databricks-broadcast-4-nodes-small
 
   - id: national-scale-spatial-join-databricks-partitioned-4-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-8-nodes-medium
+      - national-scale-spatial-join-databricks-broadcast-4-nodes-medium
 
   - id: national-scale-spatial-join-databricks-partitioned-4-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-12-nodes-large
 
   - id: national-scale-spatial-join-databricks-partitioned-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-small
+      - national-scale-spatial-join-duckdb-small
+      - national-scale-spatial-join-postgis-small
 
   - id: national-scale-spatial-join-databricks-partitioned-8-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
+      - national-scale-spatial-join-duckdb-medium
+      - national-scale-spatial-join-postgis-medium
 
   - id: national-scale-spatial-join-databricks-partitioned-8-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-8-nodes-large
 
   - id: national-scale-spatial-join-databricks-partitioned-12-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-12-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-4-nodes-large
 
   - id: national-scale-spatial-join-databricks-partitioned-16-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-16-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-partitioned-2-nodes-large
 
   # ---- Sedona default strategy (apples-to-apples baseline) ----
   - id: national-scale-spatial-join-databricks-default-2-nodes-small
@@ -351,74 +397,92 @@ experiments:
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-4-nodes-small
 
   - id: national-scale-spatial-join-databricks-default-2-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-2-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-4-nodes-medium
+      - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
 
   - id: national-scale-spatial-join-databricks-default-2-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-2-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-16-nodes-large
 
   - id: national-scale-spatial-join-databricks-default-4-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-2-nodes-small
 
   - id: national-scale-spatial-join-databricks-default-4-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
+      - national-scale-spatial-join-databricks-default-2-nodes-medium
 
   - id: national-scale-spatial-join-databricks-default-4-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-4-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-12-nodes-large
 
   - id: national-scale-spatial-join-databricks-default-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: small
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-4-nodes-small
+      - national-scale-spatial-join-databricks-partitioned-4-nodes-small
 
   - id: national-scale-spatial-join-databricks-default-8-nodes-medium
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: medium
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-broadcast-4-nodes-medium
+      - national-scale-spatial-join-databricks-partitioned-4-nodes-medium
 
   - id: national-scale-spatial-join-databricks-default-8-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-8-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-duckdb-large
+      - national-scale-spatial-join-postgis-large
 
   - id: national-scale-spatial-join-databricks-default-12-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-12-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-4-nodes-large
 
   - id: national-scale-spatial-join-databricks-default-16-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-16-nodes:latest
     cpu: 3
     memory_gb: 8
     dataset_size: large
-    related_script_ids: []
+    related_script_ids:
+      - national-scale-spatial-join-databricks-default-2-nodes-large
