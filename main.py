@@ -24,7 +24,7 @@ def main() -> None:
     benchmark run launches every experiment as a one-shot ACI, streams its logs
     until success or failure, and cleans up container groups before and after.
     """
-    _run_cmd(["az", "login", "--identity"])
+    _ensure_azure_login()
 
     with open(Config.BENCHMARK_FILE) as f:
         benchmark_configuration = yaml.safe_load(f)
@@ -142,6 +142,17 @@ def _container_group_name(experiment_id: str) -> str:
     budget = 63 - len("benchmark-") - 1 - len(digest)
     truncated = experiment_id[:budget].rstrip("-")
     return f"benchmark-{truncated}-{digest}"
+
+
+def _ensure_azure_login() -> None:
+    try:
+        _run_cmd(["az", "account", "show"], suppress_error_log=True)
+        logger.info("Azure CLI already authenticated; skipping managed-identity login.")
+        return
+    except RuntimeError:
+        pass
+
+    _run_cmd(["az", "login", "--identity"])
 
 
 # noinspection PyDeprecation

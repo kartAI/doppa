@@ -152,24 +152,40 @@ be decomposed into read, shuffle, and driver collection time.
 ### Pairing and randomization
 
 `main.py` shuffles the experiment list with `random.Random(benchmark_run)` before launching containers. Experiments
-that compare directly (for example `point-in-polygon-lookup-duckdb-small` and `point-in-polygon-lookup-postgis-small`)
-declare each other under `related_script_ids` in `benchmarks.yml` and are launched concurrently via a
-`ThreadPoolExecutor`. Running a paired benchmark in the same wall-clock window controls for short-term cloud
-variability between the engines being compared.
+that should share a wall-clock window declare each other under `related_script_ids` in `benchmarks.yml` and are
+launched concurrently via a `ThreadPoolExecutor`. Running paired benchmarks in the same window controls for
+short-term cloud variability between the engines being compared.
 
 Concretely, the outer orchestrator loop is serial: it picks the next experiment that has not yet completed, fans out
-its pair group as one parallel batch, waits for the whole batch to finish, marks every member completed, and moves on.
-At any moment one pair group is in flight; within that group every member runs on its own ACI in parallel.
+its peer batch in parallel, waits for the whole batch to finish, marks every member completed, and moves on. At any
+moment one batch is in flight; within that batch every member runs on its own ACI in parallel.
+
+The 52 experiments are packed into 20 batches under four constraints that the `related_script_ids` graph encodes:
+
+1. **Same query type** per batch — `point-in-polygon-lookup`, `knn-search`, `bbox-filtering`, or
+   `national-scale-spatial-join` never mix.
+2. **Same dataset size** per batch — `small`, `medium`, and `large` never overlap, so storage cache state and
+   regional VM pressure are comparable across batch members.
+3. **At most one PostGIS experiment** per batch — Azure Database for PostgreSQL is a single shared instance and two
+   concurrent PostGIS queries would contend on shared buffers, OS page cache, and CPU.
+4. **At most 80 Databricks cluster vCPU** per batch — `Standard_D4s_v3` is 4 vCPU per node, each Sedona cluster
+   uses `(workers + 1) × 4` vCPU (driver + workers), and the Databricks workspace's regional quota for that VM
+   family is 80. DuckDB, Shapefile, and PostGIS draw from a separate ACI quota and do not count.
+
+DuckDB and Shapefile experiments are process-local inside their own ACI, so multiple of either may run concurrently
+without disturbing each other. Each Sedona variant provisions its own Databricks cluster on disjoint VMs, so two
+Sedona experiments in the same batch do not share any runtime state beyond the regional vCPU pool already capped
+by constraint 4.
 
 ### Test matrix
 
-The matrix below is the active set of 52 experiments grouped into 40 parallel pair groups. Each cell lists the
-engines that launch together in the same wall-clock window; size suffixes (`-small`, `-medium`, `-large`) are
-appended to the experiment ids in `benchmarks.yml` and forwarded to each container as `--dataset-size`. Shapefile
-(`local`) only participates at the `small` tier per the thesis methodology — it represents the laptop-workflow
-reference, not a scalable engine.
+The matrix below is the active set of 52 experiments grouped into 20 parallel batches. Each cell lists the engines
+or Sedona configurations that launch together in the same wall-clock window; size suffixes (`-small`, `-medium`,
+`-large`) are appended to the experiment ids in `benchmarks.yml` and forwarded to each container as `--dataset-size`.
+Shapefile (`local`) only participates at the `small` tier per the thesis methodology — it represents the
+laptop-workflow reference, not a scalable engine.
 
-**RQ1 — Single-machine query benchmarks** (15 experiments, 6 pair groups)
+**RQ1 — Single-machine query benchmarks** (15 experiments, 6 batches)
 
 | Query type                | `small` (3-way)          | `large` (2-way)  |
 |---------------------------|--------------------------|------------------|
@@ -180,25 +196,51 @@ reference, not a scalable engine.
 The medium tier was dropped from the surviving RQ1 queries and `attribute-spatial-compound-filter` was removed
 across the board (issue #281); the 13 freed cells are reinvested in RQ2.
 
-**RQ2 — National-scale spatial join** (37 experiments, 34 pair groups)
+**RQ2 — National-scale spatial join** (37 experiments, 14 batches)
 
-| Engine / strategy                | `small`               | `medium`              | `large`                              |
-|----------------------------------|-----------------------|-----------------------|--------------------------------------|
-| Single-node (paired)             | duckdb · postgis      | duckdb · postgis      | duckdb · postgis                     |
-| Sedona `broadcast` (unpaired)    | 4 / 8 nodes           | 2 / 4 / 8 nodes       | 2 / 4 / 8 / 12 / 16 nodes            |
-| Sedona `partitioned` (unpaired)  | 4 / 8 nodes           | 2 / 4 / 8 nodes       | 2 / 4 / 8 / 12 / 16 nodes            |
-| Sedona `default` (unpaired)      | 2 / 4 / 8 nodes       | 2 / 4 / 8 nodes       | 2 / 4 / 8 / 12 / 16 nodes            |
+| Engine / strategy   | `small`             | `medium`            | `large`                   |
+|---------------------|---------------------|---------------------|---------------------------|
+| Single-node         | duckdb · postgis    | duckdb · postgis    | duckdb · postgis          |
+| Sedona `broadcast`  | 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
+| Sedona `partitioned`| 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
+| Sedona `default`    | 2 / 4 / 8 nodes     | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
 
-Cells in the **paired** rows list every engine that launches in the same wall-clock window (one ACI each, started
-concurrently via `ThreadPoolExecutor`). Cells in the **unpaired** rows list separate experiments that each run alone
-in their own pair group — they share a row only because they share a strategy/size, not because they co-launch.
-Sedona variants are unpaired because each provisions its own Databricks cluster.
+Within each size column, single-node and Sedona experiments are packed into the same batches up to the 80 vCPU
+Databricks budget — the table groups by strategy for readability, not by batch membership. Concrete batch
+membership is whatever `related_script_ids` in `benchmarks.yml` declares; see the batch listing below.
 
 The 2-node row is omitted at `small` for `broadcast` and `partitioned`: at ~5M polygons those configurations were
 weakly differentiated from `default`; the freed cells fund the 12-/16-node extension of the scaling curve at `large`.
 The `default` strategy applies no `broadcast()` hint and no Sedona partitioner configuration; Spark's cost-based
 optimizer picks the plan, so it serves as the apples-to-apples baseline against which `broadcast` and `partitioned`
 are compared.
+
+**Batch listing.** Twenty batches in total. The Databricks vCPU column sums `(workers + 1) × 4` over Sedona members
+of the batch; single-node and DuckDB/Shapefile ACIs draw from a separate quota. Sequential execution order follows
+the seeded shuffle.
+
+| Batch | Type                        | Size   | Databricks vCPU | Members |
+|-------|-----------------------------|--------|-----------------|---------|
+| P1    | point-in-polygon-lookup     | small  | 0               | duckdb · postgis · local |
+| P2    | point-in-polygon-lookup     | large  | 0               | duckdb · postgis |
+| K1    | knn-search                  | small  | 0               | duckdb · postgis · local |
+| K2    | knn-search                  | large  | 0               | duckdb · postgis |
+| B1    | bbox-filtering              | small  | 0               | duckdb · postgis · local |
+| B2    | bbox-filtering              | large  | 0               | duckdb · postgis |
+| A_S1  | national-scale-spatial-join | small  | 72              | broadcast-8 · partitioned-8 · duckdb · postgis |
+| A_S2  | national-scale-spatial-join | small  | 76              | default-8 · broadcast-4 · partitioned-4 |
+| A_S3  | national-scale-spatial-join | small  | 32              | default-4 · default-2 |
+| A_M1  | national-scale-spatial-join | medium | 72              | broadcast-8 · partitioned-8 · duckdb · postgis |
+| A_M2  | national-scale-spatial-join | medium | 76              | default-8 · broadcast-4 · partitioned-4 |
+| A_M3  | national-scale-spatial-join | medium | 56              | default-4 · broadcast-2 · partitioned-2 · default-2 |
+| A_L1  | national-scale-spatial-join | large  | 80              | broadcast-16 · broadcast-2 |
+| A_L2  | national-scale-spatial-join | large  | 80              | partitioned-16 · partitioned-2 |
+| A_L3  | national-scale-spatial-join | large  | 80              | default-16 · default-2 |
+| A_L4  | national-scale-spatial-join | large  | 72              | broadcast-12 · broadcast-4 |
+| A_L5  | national-scale-spatial-join | large  | 72              | partitioned-12 · partitioned-4 |
+| A_L6  | national-scale-spatial-join | large  | 72              | default-12 · default-4 |
+| A_L7  | national-scale-spatial-join | large  | 72              | broadcast-8 · partitioned-8 |
+| A_L8  | national-scale-spatial-join | large  | 36              | default-8 · duckdb · postgis |
 
 ## Dataset layout
 

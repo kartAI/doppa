@@ -23,7 +23,7 @@ Python, DuckDB (spatial), PostGIS on Azure Database for PostgreSQL, Apache Sedon
 - Dependency direction: `presentation` → `application` → `domain`; `infra` implements `application/contracts`. No upward imports across layers.
 - Env vars and tunable constants belong in `src/config.py` (`Config`). Do not call `os.getenv` from services or entrypoints. *Why: one place to audit secrets and tweak benchmark sizes.*
 - Secrets live in `.env` (gitignored) and are forwarded to ACI as `--secure-environment-variables` from `main.py`.
-- Benchmark pairing: related benchmarks list each other bidirectionally in `related_script_ids` (e.g. `*-duckdb` ↔ `*-postgis`). The orchestrator dedupes via `completed_experiments`, so each pair runs once as a single parallel batch. *Why: peers execute under the same wall-clock window for fair comparison.*
+- Benchmark batching: members of a batch list each other bidirectionally in `related_script_ids`. The orchestrator dedupes via `completed_experiments`, so each batch runs once as one parallel `ThreadPoolExecutor` fan-out. A batch must satisfy four constraints simultaneously: (a) same query type, (b) same `dataset_size`, (c) at most one PostGIS member (shared Azure Postgres server), (d) Databricks cluster vCPU sum ≤ 80, computed as `(workers + 1) × 4` per Sedona member on `Standard_D4s_v3`. See `README.md#pairing-and-randomization` for the full batch listing. *Why: peers must execute under the same wall-clock window for fair comparison, without contending on shared infrastructure or breaching regional quota.*
 - Adding a benchmark requires three edits in lockstep: file in `src/presentation/entrypoints/`, `case` arm in `benchmark_runner.py`, and an entry in `benchmarks.yml`. Missing any one silently breaks dispatch or orchestration.
 
 ## Commands
@@ -38,7 +38,7 @@ python benchmark_runner.py --script-id <id> --benchmark-run 1 --run-id dev  # on
 <important if="you are adding a new benchmark">
 - Create `src/presentation/entrypoints/<name>.py`; re-export from `entrypoints/__init__.py`.
 - Add `case "<script-id>":` in `benchmark_runner.py`.
-- Append entry to `benchmarks.yml` with `id`, `image`, `cpu`, `memory_gb`, `related_script_ids` (list peers both ways).
+- Append entry to `benchmarks.yml` with `id`, `image`, `cpu`, `memory_gb`, `dataset_size`, `related_script_ids` (list peers both ways; assign to an existing batch that satisfies the four constraints in the batching invariant, or create a new batch).
 - If a new service is needed: contract in `application/contracts/`, impl in `infra/infrastructure/services/`, provider in `containers.py`.
 </important>
 
