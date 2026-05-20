@@ -44,6 +44,15 @@ def monitor(
                 f"Starting benchmark for query '{query_id}' with run ID '{run_id}'."
             )
 
+            ingress_sum: int = 0
+            egress_sum: int = 0
+            start_time = datetime.datetime.now(datetime.UTC)
+            failure: Exception | None = None
+            failure_iteration: int | None = None
+            failure_started_at: datetime.datetime | None = None
+            failure_ended_at: datetime.datetime | None = None
+            failure_partial_sample: dict | None = None
+
             if skip_warmup:
                 logger.info(
                     f"Executing {benchmark_iteration.value} benchmark run(s) (no warmup)."
@@ -53,78 +62,159 @@ def monitor(
                     f"Executing {Config.BENCHMARK_WARMUP_ITERATIONS} warmup runs."
                 )
                 for _ in range(Config.BENCHMARK_WARMUP_ITERATIONS):
-                    func(*args, **kwargs)
-                logger.info(
-                    f"Warmup runs completed. Starting {benchmark_iteration.value} benchmark runs."
-                )
+                    warmup_started_at = datetime.datetime.now(datetime.UTC)
+                    (
+                        _,
+                        w_elapsed,
+                        w_sent,
+                        w_recv,
+                        w_cpu_u,
+                        w_cpu_s,
+                        warmup_exc,
+                    ) = _measure_io(func, *args, **kwargs)
+                    warmup_ended_at = datetime.datetime.now(datetime.UTC)
+                    if warmup_exc is not None:
+                        failure = warmup_exc
+                        failure_iteration = 0
+                        failure_started_at = warmup_started_at
+                        failure_ended_at = warmup_ended_at
+                        failure_partial_sample = {
+                            "network_bytes_sent": w_sent,
+                            "network_bytes_received": w_recv,
+                            "cpu_time_user_seconds": w_cpu_u,
+                            "cpu_time_system_seconds": w_cpu_s,
+                            "wall_elapsed_time": w_elapsed,
+                        }
+                        logger.error(
+                            f"Warmup raised for query '{query_id}': {warmup_exc!r}. "
+                            f"Skipping timed iterations."
+                        )
+                        break
+                if failure is None:
+                    logger.info(
+                        f"Warmup runs completed. Starting {benchmark_iteration.value} benchmark runs."
+                    )
 
-            ingress_sum: int = 0
-            egress_sum: int = 0
-            start_time = datetime.datetime.now(datetime.UTC)
+            if failure is None:
+                for i in range(benchmark_iteration.value):
+                    iteration = i + 1
 
-            for i in range(benchmark_iteration.value):
-                iteration = i + 1
+                    started_at = datetime.datetime.now(datetime.UTC)
+                    (
+                        result,
+                        wall_elapsed_time,
+                        net_bytes_sent,
+                        net_bytes_received,
+                        cpu_time_user_seconds,
+                        cpu_time_system_seconds,
+                        iter_exc,
+                    ) = _measure_io(func, *args, **kwargs)
+                    ended_at = datetime.datetime.now(datetime.UTC)
 
-                started_at = datetime.datetime.now(datetime.UTC)
-                (
-                    result,
-                    wall_elapsed_time,
-                    net_bytes_sent,
-                    net_bytes_received,
-                    cpu_time_user_seconds,
-                    cpu_time_system_seconds,
-                ) = _measure_io(func, *args, **kwargs)
-                ended_at = datetime.datetime.now(datetime.UTC)
+                    if iter_exc is not None:
+                        failure = iter_exc
+                        failure_iteration = iteration
+                        failure_started_at = started_at
+                        failure_ended_at = ended_at
+                        failure_partial_sample = {
+                            "network_bytes_sent": net_bytes_sent,
+                            "network_bytes_received": net_bytes_received,
+                            "cpu_time_user_seconds": cpu_time_user_seconds,
+                            "cpu_time_system_seconds": cpu_time_system_seconds,
+                            "wall_elapsed_time": wall_elapsed_time,
+                        }
+                        ingress_sum += net_bytes_received
+                        egress_sum += net_bytes_sent
+                        logger.error(
+                            f"Iteration {iteration} raised for query '{query_id}': "
+                            f"{iter_exc!r}. Failing fast; skipping remaining iterations."
+                        )
+                        break
 
-                executor_input_bytes_read = None
-                executor_run_time_ms = None
-                shuffle_read_bytes = None
-                shuffle_write_bytes = None
-                driver_collection_time_ms = None
-                stage_durations_ms = None
+                    executor_input_bytes_read = None
+                    executor_run_time_ms = None
+                    shuffle_read_bytes = None
+                    shuffle_write_bytes = None
+                    driver_collection_time_ms = None
+                    stage_durations_ms = None
 
-                if elapsed_from_result:
-                    if isinstance(result, DatabricksRunResult):
-                        elapsed_time = result.execution_duration_s
-                        result_cardinality = result.cardinality
-                        executor_input_bytes_read = result.executor_input_bytes_read
-                        executor_run_time_ms = result.executor_run_time_ms
-                        shuffle_read_bytes = result.shuffle_read_bytes
-                        shuffle_write_bytes = result.shuffle_write_bytes
-                        driver_collection_time_ms = result.driver_collection_time_ms
-                        stage_durations_ms = result.stage_durations_ms
+                    if elapsed_from_result:
+                        if isinstance(result, DatabricksRunResult):
+                            elapsed_time = result.execution_duration_s
+                            result_cardinality = result.cardinality
+                            executor_input_bytes_read = result.executor_input_bytes_read
+                            executor_run_time_ms = result.executor_run_time_ms
+                            shuffle_read_bytes = result.shuffle_read_bytes
+                            shuffle_write_bytes = result.shuffle_write_bytes
+                            driver_collection_time_ms = result.driver_collection_time_ms
+                            stage_durations_ms = result.stage_durations_ms
+                        else:
+                            elapsed_time, result_cardinality = result
                     else:
-                        elapsed_time, result_cardinality = result
-                else:
-                    elapsed_time = wall_elapsed_time
-                    result_cardinality = len(result) if result is not None else -1
+                        elapsed_time = wall_elapsed_time
+                        result_cardinality = len(result) if result is not None else -1
 
-                ingress_sum += net_bytes_received
-                egress_sum += net_bytes_sent
+                    ingress_sum += net_bytes_received
+                    egress_sum += net_bytes_sent
 
+                    _save_run(
+                        run_id=run_id,
+                        benchmark_run=benchmark_run,
+                        query_id=query_id,
+                        iteration=iteration,
+                        total_iterations=benchmark_iteration.value,
+                        samples=[
+                            {
+                                "status": "success",
+                                "failure_reason": None,
+                                "elapsed_time": elapsed_time,
+                                "network_bytes_sent": net_bytes_sent,
+                                "network_bytes_received": net_bytes_received,
+                                "started_at": started_at.isoformat(),
+                                "ended_at": ended_at.isoformat(),
+                                "cpu_time_user_seconds": cpu_time_user_seconds,
+                                "cpu_time_system_seconds": cpu_time_system_seconds,
+                                "result_cardinality": result_cardinality,
+                                "executor_input_bytes_read": executor_input_bytes_read,
+                                "executor_run_time_ms": executor_run_time_ms,
+                                "shuffle_read_bytes": shuffle_read_bytes,
+                                "shuffle_write_bytes": shuffle_write_bytes,
+                                "driver_collection_time_ms": driver_collection_time_ms,
+                                "stage_durations_ms": stage_durations_ms,
+                                "schema_version": SchemaVersion.V4.value,
+                            }
+                        ],
+                    )
+
+            if failure is not None:
+                assert failure_started_at is not None
+                assert failure_ended_at is not None
+                assert failure_partial_sample is not None
                 _save_run(
                     run_id=run_id,
                     benchmark_run=benchmark_run,
                     query_id=query_id,
-                    iteration=iteration,
+                    iteration=failure_iteration or 1,
                     total_iterations=benchmark_iteration.value,
                     samples=[
                         {
-                            "elapsed_time": elapsed_time,
-                            "network_bytes_sent": net_bytes_sent,
-                            "network_bytes_received": net_bytes_received,
-                            "started_at": started_at.isoformat(),
-                            "ended_at": ended_at.isoformat(),
-                            "cpu_time_user_seconds": cpu_time_user_seconds,
-                            "cpu_time_system_seconds": cpu_time_system_seconds,
-                            "result_cardinality": result_cardinality,
-                            "executor_input_bytes_read": executor_input_bytes_read,
-                            "executor_run_time_ms": executor_run_time_ms,
-                            "shuffle_read_bytes": shuffle_read_bytes,
-                            "shuffle_write_bytes": shuffle_write_bytes,
-                            "driver_collection_time_ms": driver_collection_time_ms,
-                            "stage_durations_ms": stage_durations_ms,
-                            "schema_version": SchemaVersion.V3.value,
+                            "status": "failed",
+                            "failure_reason": str(failure),
+                            "elapsed_time": None,
+                            "network_bytes_sent": failure_partial_sample["network_bytes_sent"],
+                            "network_bytes_received": failure_partial_sample["network_bytes_received"],
+                            "started_at": failure_started_at.isoformat(),
+                            "ended_at": failure_ended_at.isoformat(),
+                            "cpu_time_user_seconds": failure_partial_sample["cpu_time_user_seconds"],
+                            "cpu_time_system_seconds": failure_partial_sample["cpu_time_system_seconds"],
+                            "result_cardinality": None,
+                            "executor_input_bytes_read": None,
+                            "executor_run_time_ms": None,
+                            "shuffle_read_bytes": None,
+                            "shuffle_write_bytes": None,
+                            "driver_collection_time_ms": None,
+                            "stage_durations_ms": None,
+                            "schema_version": SchemaVersion.V4.value,
                         }
                     ],
                 )
@@ -145,6 +235,13 @@ def monitor(
                 bytes_egress=egress_sum,
                 operation_type=BlobOperationType.READ,
             )
+
+            if failure is not None:
+                logger.warning(
+                    f"Benchmark run {benchmark_run} for query '{query_id}' recorded as failed; "
+                    f"reason: {failure!r}"
+                )
+                return None
 
             logger.info(f"Benchmark run {benchmark_run} completed.")
             return result
