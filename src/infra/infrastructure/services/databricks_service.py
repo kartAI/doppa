@@ -429,9 +429,16 @@ class DatabricksService(IDatabricksService):
 
             if life_cycle_state in DatabricksRunLifecycleState.terminal_values():
                 if result_state != DatabricksRunResultState.SUCCESS.value:
+                    error_details = ""
+                    tasks = data.get("tasks") or []
+                    if tasks:
+                        failed_task_run_id = str(tasks[0].get("run_id"))
+                        error_details = self._fetch_run_error(failed_task_run_id)
+                    suffix = f"\nNotebook error:\n{error_details}" if error_details else ""
                     raise RuntimeError(
                         f"Databricks run {run_id} finished with result_state='{result_state}'. "
                         f"State message: {state.get('state_message', '')}"
+                        f"{suffix}"
                     )
                 execution_duration_ms = data.get("execution_duration", 0)
                 setup_duration_ms = data.get("setup_duration", 0)
@@ -455,6 +462,31 @@ class DatabricksService(IDatabricksService):
                 return task_run_id
 
             time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
+
+    def _fetch_run_error(self, task_run_id: str) -> str:
+        """Best-effort fetch of error/error_trace from runs/get-output for a failed task run.
+
+        Returns an empty string if the endpoint is unreachable or returns no error fields;
+        callers should treat this as supplementary diagnostics, not authoritative.
+        """
+        try:
+            response = requests.get(
+                f"{self._host}/api/2.1/jobs/runs/get-output",
+                headers=self._headers,
+                params={"run_id": task_run_id},
+                timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            logger.warning(
+                f"Could not fetch run output for failed task run {task_run_id}: {exc}"
+            )
+            return ""
+        payload = response.json()
+        error = str(payload.get("error") or "").strip()
+        error_trace = str(payload.get("error_trace") or "").strip()
+        parts = [p for p in (error, error_trace) if p]
+        return "\n".join(parts)
 
     def _fetch_notebook_output(self, run_id: str) -> DatabricksRunResult:
         """Fetch the notebook's dbutils.notebook.exit JSON payload and return a DatabricksRunResult.

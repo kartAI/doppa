@@ -78,15 +78,19 @@ def _run_benchmarks(
 
             experiments_to_run.append(related_experiment)
 
-        with ThreadPoolExecutor(max_workers=10) as pool:
-            list(
-                pool.map(
-                    lambda exp: _run_container_benchmark(
-                        experiment=exp, run_id=run_id, benchmark_run=benchmark_run
-                    ),
-                    experiments_to_run,
+        def _safe_run(exp: dict[str, str | int | list[str]]) -> None:
+            try:
+                _run_container_benchmark(
+                    experiment=exp, run_id=run_id, benchmark_run=benchmark_run
                 )
-            )
+            except Exception as exc:
+                logger.error(
+                    f"Experiment '{exp['id']}' failed at orchestrator level; "
+                    f"continuing with remaining experiments. Error: {exc!r}"
+                )
+
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            list(pool.map(_safe_run, experiments_to_run))
 
         for exp in experiments_to_run:
             completed_experiments.append(str(exp["id"]))

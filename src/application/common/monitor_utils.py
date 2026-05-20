@@ -165,13 +165,20 @@ def _create_global_iteration(
     return iteration + total_iterations * (benchmark_run - 1)
 
 
-def _measure_io(func, *args, **kwargs) -> tuple[Any, float, int, int, float, float]:
+def _measure_io(
+    func, *args, **kwargs
+) -> tuple[Any, float, int, int, float, float, Exception | None]:
     process = psutil.Process()
     net_before = psutil.net_io_counters()
     cpu_before = process.cpu_times()
     start_time = time.perf_counter()
 
-    result = func(*args, **kwargs)
+    result: Any = None
+    exception: Exception | None = None
+    try:
+        result = func(*args, **kwargs)
+    except Exception as exc:
+        exception = exc
 
     end_time = time.perf_counter()
     cpu_after = process.cpu_times()
@@ -190,4 +197,5 @@ def _measure_io(func, *args, **kwargs) -> tuple[Any, float, int, int, float, flo
         network_bytes_received,
         cpu_time_user_seconds,
         cpu_time_system_seconds,
+        exception,
     )
