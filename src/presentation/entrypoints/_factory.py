@@ -21,10 +21,7 @@ def _get_dataset_size(
 def _build_query_id(base: str, dataset_size: DatasetSize) -> str:
     """
     Compose the ``query_id`` for a benchmark entrypoint from its base identifier and
-    the active dataset size. ``DatasetSize.SMALL`` returns the bare base so historical
-    SMALL-only run keys in blob storage remain accessible without renaming; other sizes
-    get a ``"-{size}"`` suffix so results stay keyed unambiguously.
+    the active dataset size. Always suffixed with ``"-{size}"`` so the resulting id
+    matches the ``benchmarks.yml`` experiment id and the Azure container resource name.
     """
-    if dataset_size is DatasetSize.SMALL:
-        return base
     return f"{base}-{dataset_size.value}"
