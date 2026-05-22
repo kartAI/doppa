@@ -29,6 +29,7 @@ def monitor(
     skip_warmup: bool = False,
     elapsed_from_result: bool = False,
     use_sequential_stopping: bool = True,
+    warmup_iterations: int | None = None,
 ):
     """
     Benchmarking decorator. Wraps a function in warmup + timed iterations, records
@@ -49,6 +50,11 @@ def monitor(
         window valid) and ``Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS`` (hard timeout).
         Set to False for Databricks national-scale runs, which use a fixed iteration count.
         Default is True.
+    :param warmup_iterations: Override the number of warmup iterations. ``None`` falls back
+        to ``Config.BENCHMARK_WARMUP_ITERATIONS``. Long-running benchmarks (national-scale
+        spatial joins) typically set this to 1 since one warmup is enough to prime the OS
+        page cache / connection / cluster state and additional warmups dominate the
+        wall-clock budget. Ignored when ``skip_warmup`` is True.
     """
 
     def decorator(func):
@@ -73,15 +79,21 @@ def monitor(
             failure_ended_at: datetime.datetime | None = None
             failure_partial_sample: dict | None = None
 
+            effective_warmup_iterations = (
+                warmup_iterations
+                if warmup_iterations is not None
+                else Config.BENCHMARK_WARMUP_ITERATIONS
+            )
+
             if skip_warmup:
                 logger.info(
                     f"Executing benchmark for '{query_id}' with no warmup (ceiling={ceiling})."
                 )
             else:
                 logger.info(
-                    f"Executing {Config.BENCHMARK_WARMUP_ITERATIONS} warmup runs."
+                    f"Executing {effective_warmup_iterations} warmup runs."
                 )
-                for _ in range(Config.BENCHMARK_WARMUP_ITERATIONS):
+                for _ in range(effective_warmup_iterations):
                     warmup_started_at = datetime.datetime.now(datetime.UTC)
                     (
                         _,
