@@ -1,4 +1,5 @@
 ﻿import datetime
+import hashlib
 import random
 import string
 import time
@@ -6,6 +7,7 @@ import uuid
 from datetime import date
 from typing import Any
 
+import numpy as np
 import psutil
 from dependency_injector.wiring import inject, Provide
 
@@ -13,7 +15,7 @@ from src import Config
 from src.application.common import logger
 from src.application.contracts import IMonitoringStorageService, IAzureCostService
 from src.application.dtos import CostConfiguration
-from src.domain.enums import BlobOperationType
+from src.domain.enums import BlobOperationType, StopReason
 from src.infra.infrastructure import Containers
 
 
@@ -163,6 +165,39 @@ def _create_global_iteration(
     iteration: int, total_iterations: int, benchmark_run: int
 ) -> int:
     return iteration + total_iterations * (benchmark_run - 1)
+
+
+def _make_bootstrap_rng(run_id: str, query_id: str) -> np.random.Generator:
+    """
+    Deterministic seed for bootstrap resampling per (run_id, query_id), so the
+    stopping rule is reproducible across reruns of the same benchmark.
+    """
+    digest = hashlib.blake2b(
+        f"{run_id}::{query_id}".encode(), digest_size=8
+    ).digest()
+    seed = int.from_bytes(digest, "big")
+    return np.random.default_rng(seed)
+
+
+def _bootstrap_ci_half_width(
+    samples: list[float],
+    n_resamples: int,
+    confidence: float,
+    rng: np.random.Generator,
+) -> tuple[float, float, float]:
+    """
+    Non-parametric bootstrap CI on the sample mean. Returns
+    (mean, median, abs_half_width_on_mean).
+    """
+    arr = np.asarray(samples, dtype=np.float64)
+    n = arr.size
+    indices = rng.integers(0, n, size=(n_resamples, n))
+    resample_means = arr[indices].mean(axis=1)
+    alpha = 1.0 - confidence
+    lower = float(np.quantile(resample_means, alpha / 2.0))
+    upper = float(np.quantile(resample_means, 1.0 - alpha / 2.0))
+    half_width = (upper - lower) / 2.0
+    return float(arr.mean()), float(np.median(arr)), half_width
 
 
 def _measure_io(
