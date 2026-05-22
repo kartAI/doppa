@@ -6,7 +6,7 @@ import pandas as pd
 from src import Config
 from src.application.contracts import IMonitoringStorageService, IBlobStorageService, IBytesService, IFilePathService
 from src.application.dtos import Cost
-from src.domain.enums import StorageContainer
+from src.domain.enums import StorageContainer, StopReason
 
 
 class MonitoringStorageService(IMonitoringStorageService):
@@ -29,7 +29,13 @@ class MonitoringStorageService(IMonitoringStorageService):
             metadata_id: str,
             timestamp: datetime.datetime,
             query_id: str,
-            run_id: str
+            run_id: str,
+            achieved_iterations: int,
+            stop_reason: StopReason,
+            ci_half_width_seconds: float | None,
+            ci_half_width_relative: float | None,
+            mean_elapsed_seconds: float | None,
+            median_elapsed_seconds: float | None,
     ) -> None:
         benchmark_metadata_file = self.__blob_storage_service.download_file(
             container_name=StorageContainer.METADATA,
@@ -44,7 +50,13 @@ class MonitoringStorageService(IMonitoringStorageService):
             "id": metadata_id,
             "timestamp": pd.Timestamp(timestamp),
             "query_id": query_id,
-            "run_id": run_id
+            "run_id": run_id,
+            "achieved_iterations": achieved_iterations,
+            "stop_reason": stop_reason.value,
+            "ci_half_width_seconds": ci_half_width_seconds,
+            "ci_half_width_relative": ci_half_width_relative,
+            "mean_elapsed_seconds": mean_elapsed_seconds,
+            "median_elapsed_seconds": median_elapsed_seconds,
         }])
 
         updated_benchmark_df = pd.concat(

@@ -12,3 +12,4 @@ from .data_source import DataSource
 from .dataset_size import DatasetSize
 from .bounding_box import BoundingBox
 from .schema_version import SchemaVersion
+from .stop_reason import StopReason

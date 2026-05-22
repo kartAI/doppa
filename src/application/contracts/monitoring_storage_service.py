@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from src.application.dtos import Cost
+from src.domain.enums import StopReason
 
 
 class IMonitoringStorageService(ABC):
@@ -12,7 +13,13 @@ class IMonitoringStorageService(ABC):
             metadata_id: str,
             timestamp: datetime.datetime,
             query_id: str,
-            run_id: str
+            run_id: str,
+            achieved_iterations: int,
+            stop_reason: StopReason,
+            ci_half_width_seconds: float | None,
+            ci_half_width_relative: float | None,
+            mean_elapsed_seconds: float | None,
+            median_elapsed_seconds: float | None,
     ) -> None:
         """
         Save metadata to blob storage. Metadata includes information about the query and the run,
@@ -26,6 +33,18 @@ class IMonitoringStorageService(ABC):
             main method and passed to this method.
         :param query_id: Query ID associated with the run which is passed from the main method.
         :param run_id: A unique identifier for the run.
+        :param achieved_iterations: Number of timed iterations actually executed (excludes warmup).
+        :param stop_reason: Why the iteration loop stopped (precision met, timeout, ceiling, fixed
+            count for Databricks, or failed).
+        :param ci_half_width_seconds: Absolute half-width of the bootstrapped 95% CI on the mean
+            elapsed time, in seconds. None when sequential stopping is disabled or the run failed
+            before producing enough samples.
+        :param ci_half_width_relative: Same half-width as a fraction of the mean (e.g. 0.05 == 5%).
+            None when undefined.
+        :param mean_elapsed_seconds: Mean elapsed time across timed iterations. None when no timed
+            iteration completed.
+        :param median_elapsed_seconds: Median elapsed time across timed iterations. None when no
+            timed iteration completed.
         :return: None
         """
         raise NotImplementedError
