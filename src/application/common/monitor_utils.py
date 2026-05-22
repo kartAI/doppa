@@ -73,6 +73,12 @@ def _save_run(
 def _save_run_metadata(
     query_id: str,
     run_id: str,
+    achieved_iterations: int,
+    stop_reason: StopReason,
+    ci_half_width_seconds: float | None,
+    ci_half_width_relative: float | None,
+    mean_elapsed_seconds: float | None,
+    median_elapsed_seconds: float | None,
     monitoring_storage_service: IMonitoringStorageService = Provide[
         Containers.monitoring_storage_service
     ],
@@ -81,7 +87,16 @@ def _save_run_metadata(
     metadata_id = str(uuid.uuid4())
     timestamp = datetime.datetime.now(datetime.timezone.utc)
     monitoring_storage_service.write_metadata_to_blob_storage(
-        metadata_id=metadata_id, timestamp=timestamp, query_id=query_id, run_id=run_id
+        metadata_id=metadata_id,
+        timestamp=timestamp,
+        query_id=query_id,
+        run_id=run_id,
+        achieved_iterations=achieved_iterations,
+        stop_reason=stop_reason,
+        ci_half_width_seconds=ci_half_width_seconds,
+        ci_half_width_relative=ci_half_width_relative,
+        mean_elapsed_seconds=mean_elapsed_seconds,
+        median_elapsed_seconds=median_elapsed_seconds,
     )
 
     logger.info(f"Benchmark metadata saved with ID '{metadata_id}'.")
