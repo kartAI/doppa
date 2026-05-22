@@ -224,6 +224,12 @@ def monitor(
                         ],
                     )
 
+                    if not use_sequential_stopping:
+                        if iteration >= ceiling:
+                            stop_reason = StopReason.FIXED
+                            break
+                        continue
+
                     window_seconds = (
                         datetime.datetime.now(datetime.UTC) - timed_loop_start
                     ).total_seconds()
@@ -237,12 +243,6 @@ def monitor(
                             f"iterations; stopping. Results may be underpowered."
                         )
                         break
-
-                    if not use_sequential_stopping:
-                        if iteration >= ceiling:
-                            stop_reason = StopReason.FIXED
-                            break
-                        continue
 
                     floor_met = (
                         window_seconds >= Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS
