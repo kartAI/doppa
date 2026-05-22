@@ -10,9 +10,16 @@ from src.application.common.monitor_utils import (
     _save_run,
     _save_run_metadata,
     _save_run_cost_analytics,
+    _bootstrap_ci_half_width,
+    _make_bootstrap_rng,
 )
 from src.application.dtos import CostConfiguration, DatabricksRunResult
-from src.domain.enums import BenchmarkIteration, BlobOperationType, SchemaVersion
+from src.domain.enums import (
+    BenchmarkIteration,
+    BlobOperationType,
+    SchemaVersion,
+    StopReason,
+)
 
 
 def monitor(
@@ -21,15 +28,27 @@ def monitor(
     cost_configuration: CostConfiguration,
     skip_warmup: bool = False,
     elapsed_from_result: bool = False,
+    use_sequential_stopping: bool = True,
 ):
     """
     Benchmarking decorator. Wraps a function in warmup + timed iterations, records
     per-iteration samples, and writes run metadata and cost analytics to blob storage.
     :param query_id: Identifier for the benchmarked query.
-    :param benchmark_iteration: Number of timed iterations to run.
+    :param benchmark_iteration: Hard ceiling on timed iterations. Under the sequential
+        stopping rule this acts as an upper bound; the loop typically stops earlier once
+        the bootstrapped CI on the mean elapsed time is within the configured precision
+        and the 60-second timed-window floor is met.
     :param cost_configuration: Which Azure cost components to compute and store.
     :param skip_warmup: Disable warmup runs. Use for Databricks, since each run provisions a cluster and warmup would multiply cost. Default is False.
     :param elapsed_from_result: Treat the wrapped function's return value as a (elapsed_seconds, cardinality) tuple instead of using wall-clock time and len(result). Use for Databricks, since the notebook self-reports both. Default is False.
+    :param use_sequential_stopping: Run iterations until the bootstrapped CI half-width
+        on the mean elapsed time falls within ``Config.BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE``,
+        bounded below by ``Config.BENCHMARK_MIN_ITERATIONS`` and
+        ``Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS``, and above by ``benchmark_iteration``
+        (soft ceiling: kept open until the 60-second floor is met to keep the cost-metric
+        window valid) and ``Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS`` (hard timeout).
+        Set to False for Databricks national-scale runs, which use a fixed iteration count.
+        Default is True.
     """
 
     def decorator(func):
@@ -44,6 +63,7 @@ def monitor(
                 f"Starting benchmark for query '{query_id}' with run ID '{run_id}'."
             )
 
+            ceiling = benchmark_iteration.value
             ingress_sum: int = 0
             egress_sum: int = 0
             start_time = datetime.datetime.now(datetime.UTC)
@@ -55,7 +75,7 @@ def monitor(
 
             if skip_warmup:
                 logger.info(
-                    f"Executing {benchmark_iteration.value} benchmark run(s) (no warmup)."
+                    f"Executing benchmark for '{query_id}' with no warmup (ceiling={ceiling})."
                 )
             else:
                 logger.info(
@@ -91,13 +111,29 @@ def monitor(
                         )
                         break
                 if failure is None:
-                    logger.info(
-                        f"Warmup runs completed. Starting {benchmark_iteration.value} benchmark runs."
-                    )
+                    if use_sequential_stopping:
+                        logger.info(
+                            f"Warmup complete for '{query_id}'. Starting sequential timed iterations "
+                            f"(min={Config.BENCHMARK_MIN_ITERATIONS}, ceiling={ceiling}, "
+                            f"min_window={Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS}s, "
+                            f"max_window={Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS}s, "
+                            f"target_ci_relative={Config.BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE})."
+                        )
+                    else:
+                        logger.info(
+                            f"Warmup complete for '{query_id}'. Starting {ceiling} fixed timed iterations."
+                        )
+
+            elapsed_samples: list[float] = []
+            bootstrap_rng = _make_bootstrap_rng(run_id=run_id, query_id=query_id)
+            stop_reason: StopReason | None = None
+            soft_ceiling_warned = False
+            timed_loop_start = datetime.datetime.now(datetime.UTC)
 
             if failure is None:
-                for i in range(benchmark_iteration.value):
-                    iteration = i + 1
+                iteration = 0
+                while True:
+                    iteration += 1
 
                     started_at = datetime.datetime.now(datetime.UTC)
                     (
@@ -129,6 +165,7 @@ def monitor(
                             f"Iteration {iteration} raised for query '{query_id}': "
                             f"{iter_exc!r}. Failing fast; skipping remaining iterations."
                         )
+                        stop_reason = StopReason.FAILED
                         break
 
                     executor_input_bytes_read = None
@@ -156,13 +193,14 @@ def monitor(
 
                     ingress_sum += net_bytes_received
                     egress_sum += net_bytes_sent
+                    elapsed_samples.append(elapsed_time)
 
                     _save_run(
                         run_id=run_id,
                         benchmark_run=benchmark_run,
                         query_id=query_id,
                         iteration=iteration,
-                        total_iterations=benchmark_iteration.value,
+                        total_iterations=ceiling,
                         samples=[
                             {
                                 "status": "success",
@@ -186,6 +224,68 @@ def monitor(
                         ],
                     )
 
+                    window_seconds = (
+                        datetime.datetime.now(datetime.UTC) - timed_loop_start
+                    ).total_seconds()
+
+                    if window_seconds >= Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS:
+                        stop_reason = StopReason.TIMEOUT
+                        logger.warning(
+                            f"Timed window for '{query_id}' reached "
+                            f"BENCHMARK_MAX_TIMED_WINDOW_SECONDS="
+                            f"{Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS}s after {iteration} "
+                            f"iterations; stopping. Results may be underpowered."
+                        )
+                        break
+
+                    if not use_sequential_stopping:
+                        if iteration >= ceiling:
+                            stop_reason = StopReason.FIXED
+                            break
+                        continue
+
+                    floor_met = (
+                        window_seconds >= Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS
+                    )
+                    if (
+                        iteration >= Config.BENCHMARK_MIN_ITERATIONS
+                        and floor_met
+                    ):
+                        mean, _median, half_width = _bootstrap_ci_half_width(
+                            samples=elapsed_samples,
+                            n_resamples=Config.BENCHMARK_BOOTSTRAP_RESAMPLES,
+                            confidence=Config.BENCHMARK_CI_CONFIDENCE,
+                            rng=bootstrap_rng,
+                        )
+                        if mean > 0 and (
+                            half_width / mean
+                            <= Config.BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE
+                        ):
+                            stop_reason = StopReason.PRECISION
+                            logger.info(
+                                f"Precision target met for '{query_id}' at iteration "
+                                f"{iteration} (mean={mean:.4f}s, half_width={half_width:.4f}s, "
+                                f"relative={half_width / mean:.4f})."
+                            )
+                            break
+
+                    if iteration >= ceiling:
+                        if floor_met:
+                            stop_reason = StopReason.CEILING
+                            logger.info(
+                                f"Iteration ceiling {ceiling} reached for '{query_id}' "
+                                f"with window {window_seconds:.1f}s; stopping."
+                            )
+                            break
+                        if not soft_ceiling_warned:
+                            logger.warning(
+                                f"Iteration ceiling {ceiling} reached for '{query_id}' but "
+                                f"timed window only {window_seconds:.1f}s "
+                                f"(< {Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS}s). "
+                                f"Continuing past ceiling so the cost-metric window stays valid."
+                            )
+                            soft_ceiling_warned = True
+
             if failure is not None:
                 assert failure_started_at is not None
                 assert failure_ended_at is not None
@@ -195,7 +295,7 @@ def monitor(
                     benchmark_run=benchmark_run,
                     query_id=query_id,
                     iteration=failure_iteration or 1,
-                    total_iterations=benchmark_iteration.value,
+                    total_iterations=ceiling,
                     samples=[
                         {
                             "status": "failed",
@@ -219,12 +319,48 @@ def monitor(
                     ],
                 )
 
+            if stop_reason is None:
+                stop_reason = (
+                    StopReason.FIXED if not use_sequential_stopping else StopReason.FAILED
+                )
+
+            if elapsed_samples:
+                final_mean, final_median, final_half_width = _bootstrap_ci_half_width(
+                    samples=elapsed_samples,
+                    n_resamples=Config.BENCHMARK_BOOTSTRAP_RESAMPLES,
+                    confidence=Config.BENCHMARK_CI_CONFIDENCE,
+                    rng=bootstrap_rng,
+                )
+            else:
+                final_mean = None
+                final_median = None
+                final_half_width = None
+
+            if use_sequential_stopping and final_mean is not None and final_mean > 0:
+                ci_half_width_relative = final_half_width / final_mean
+                ci_half_width_seconds = final_half_width
+            else:
+                ci_half_width_relative = None
+                ci_half_width_seconds = None
+
+            achieved_iterations = len(elapsed_samples)
+
             end_time = datetime.datetime.now(datetime.UTC)
             logger.info(
-                f"Benchmark runs completed in {round((end_time - start_time).total_seconds(), 2)} seconds."
+                f"Benchmark runs completed in {round((end_time - start_time).total_seconds(), 2)} "
+                f"seconds (achieved_iterations={achieved_iterations}, stop_reason={stop_reason.value})."
             )
 
-            _save_run_metadata(query_id=query_id, run_id=run_id)
+            _save_run_metadata(
+                query_id=query_id,
+                run_id=run_id,
+                achieved_iterations=achieved_iterations,
+                stop_reason=stop_reason,
+                ci_half_width_seconds=ci_half_width_seconds,
+                ci_half_width_relative=ci_half_width_relative,
+                mean_elapsed_seconds=final_mean,
+                median_elapsed_seconds=final_median,
+            )
             _save_run_cost_analytics(
                 run_id=run_id,
                 cost_configuration=cost_configuration,

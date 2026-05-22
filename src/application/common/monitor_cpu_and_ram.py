@@ -9,7 +9,7 @@ import psutil
 from src import Config
 from src.application.common import logger
 from src.application.common.monitor_utils import _get_run_id, _get_benchmark_run, _save_run_metadata, _save_run
-from src.domain.enums import BenchmarkIteration
+from src.domain.enums import BenchmarkIteration, StopReason
 
 
 def monitor_cpu_and_ram(
@@ -80,7 +80,16 @@ def monitor_cpu_and_ram(
 
             end_time = datetime.datetime.now(datetime.UTC)
             logger.info(f"Benchmarking completed in {round((end_time - start_time).total_seconds(), 2)} seconds.")
-            _save_run_metadata(query_id=query_id, run_id=run_id)
+            _save_run_metadata(
+                query_id=query_id,
+                run_id=run_id,
+                achieved_iterations=benchmark_iteration.value,
+                stop_reason=StopReason.FIXED,
+                ci_half_width_seconds=None,
+                ci_half_width_relative=None,
+                mean_elapsed_seconds=None,
+                median_elapsed_seconds=None,
+            )
             logger.info(f"Benchmark run {benchmark_run} completed.")
             return result
 
