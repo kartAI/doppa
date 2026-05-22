@@ -96,18 +96,51 @@ as:
 
 1. **Warmup iterations** run `Config.BENCHMARK_WARMUP_ITERATIONS` times (default 5). Results are discarded. Warmup
    primes the OS page cache, DuckDB and PostgreSQL connection state, and any JIT-compiled hot paths in the engine.
-2. **Timed iterations** run a per-query count taken from the `BenchmarkIteration` enum (for example 1000 for `DB_SCAN`,
-   7 for `NATIONAL_SCALE_SPATIAL_JOIN`). Each iteration records:
+2. **Timed iterations** record per-iteration:
     - wall-clock elapsed time (`time.perf_counter`),
     - process CPU user and system seconds (`psutil.Process.cpu_times`),
     - container network bytes sent and received (`psutil.net_io_counters`),
     - result cardinality.
+   The loop stops via one of two rules depending on the benchmark (see [Stopping rule](#stopping-rule) below).
 3. **Cost analytics** are computed once per benchmark over the wall-clock window that covers the timed iterations only.
    Warmup is excluded. Pricing constants live in `src/infra/infrastructure/services/azure_pricing_service.py`, pinned
    to 2026 Norway East rates with source URLs and update notes.
 
 Per-iteration samples and per-benchmark cost rows are written as Parquet to the `benchmarks` blob container in a
 hive-partitioned layout, so downstream analysis can read full distributions rather than point averages.
+
+#### Stopping rule
+
+High-frequency single-machine queries (point-in-polygon lookup, kNN search, bbox filtering) use a **sequential
+stopping rule** so the iteration count is bound to measured variance rather than fixed up front. After every timed
+iteration the decorator computes a non-parametric bootstrapped 95% confidence interval on the mean elapsed time
+(`Config.BENCHMARK_BOOTSTRAP_RESAMPLES=1000` resamples drawn with replacement from the elapsed-time samples
+collected so far). The loop stops as soon as all of these hold:
+
+- at least `Config.BENCHMARK_MIN_ITERATIONS=10` iterations have completed (so the CI estimate is itself stable),
+- the timed window is at least `Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS=60` seconds (so the Azure Monitor
+  one-minute metric buckets that feed the cost model contain a usable data point), and
+- the bootstrapped CI half-width is within `Config.BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE=0.05` of the sample mean
+  (5% relative precision).
+
+The per-query value in `BenchmarkIteration` (for example `POINT_IN_POLYGON_LOOKUP=2500`, `KNN_SEARCH=4000`) acts as
+an **upper bound** on iterations. If iterations hit the ceiling but the 60-second window floor has not yet been met,
+the loop continues past the ceiling and logs a one-time warning, so the cost-metric window stays valid. A separate
+hard cap `Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS=3600` (one hour) protects against runaway runs and trips
+`stop_reason="timeout"` if it fires. The bootstrap RNG is seeded deterministically from `(run_id, query_id)`
+(`blake2b` digest in `_make_bootstrap_rng`), so identical reruns reproduce the same stopping point.
+
+National-scale spatial joins (`national_scale_spatial_join_databricks_*`, `national_scale_spatial_join_duckdb`,
+`national_scale_spatial_join_postgis`) opt out via `use_sequential_stopping=False` on `@monitor` and run a small
+fixed count (`NATIONAL_SCALE_SPATIAL_JOIN=5`). These queries are long-running and low-variance: a bootstrapped CI on
+fewer than `MIN_ITERATIONS` samples would be uninformative, and the cost of additional iterations is significant on
+Databricks (cluster runtime × workers) and on the shared Postgres instance. The wall-clock timeout is also skipped
+for this branch, so the fixed iteration count is the only upper bound on these benchmarks.
+
+The achieved iteration count, mean, median, bootstrapped CI half-width (both absolute seconds and as a fraction of
+the mean), and `stop_reason` (`precision`, `timeout`, `ceiling`, `fixed`, or `failed`) are persisted alongside the
+existing identifiers in `benchmark_metadata.parquet`, so downstream analysis can filter or report on each benchmark's
+stopping condition.
 
 ### Engines under test
 
