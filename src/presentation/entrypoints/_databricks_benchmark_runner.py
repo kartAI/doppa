@@ -67,6 +67,7 @@ def _build_benchmark_fn(
         skip_warmup=False,
         elapsed_from_result=True,
         use_sequential_stopping=False,
+        warmup_iterations=1,
     )
     def _benchmark(
         cluster_id: str,

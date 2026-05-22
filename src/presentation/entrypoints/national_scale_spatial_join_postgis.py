@@ -68,6 +68,7 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
         benchmark_iteration=BenchmarkIteration.NATIONAL_SCALE_SPATIAL_JOIN,
         cost_configuration=CostConfiguration(include_aci=True, include_postgres=True),
         use_sequential_stopping=False,
+        warmup_iterations=1,
     )
     def _benchmark(
         db_context: Engine,
