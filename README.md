@@ -135,7 +135,11 @@ National-scale spatial joins (`national_scale_spatial_join_databricks_*`, `natio
 fixed count (`NATIONAL_SCALE_SPATIAL_JOIN=5`). These queries are long-running and low-variance: a bootstrapped CI on
 fewer than `MIN_ITERATIONS` samples would be uninformative, and the cost of additional iterations is significant on
 Databricks (cluster runtime × workers) and on the shared Postgres instance. The wall-clock timeout is also skipped
-for this branch, so the fixed iteration count is the only upper bound on these benchmarks.
+for this branch, so the fixed iteration count is the only upper bound on these benchmarks. These same entrypoints
+override `warmup_iterations=1` on `@monitor`: one warmup is enough to prime the OS page cache, JDBC/PostGIS
+connection state, and Spark Catalyst plans on a warm Databricks cluster, while additional warmups would dominate
+the wall-clock budget (`Config.BENCHMARK_WARMUP_ITERATIONS=5` is the decorator default and applies to the
+high-frequency single-machine queries).
 
 The achieved iteration count, mean, median, bootstrapped CI half-width (both absolute seconds and as a fraction of
 the mean), and `stop_reason` (`precision`, `timeout`, `ceiling`, `fixed`, or `failed`) are persisted alongside the
