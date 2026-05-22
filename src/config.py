@@ -115,6 +115,14 @@ class Config:
     BENCHMARK_METADATA_BLOB_NAME: str = "benchmark_metadata.parquet"
     BENCHMARK_DOPPA_DATA_RELEASE: str = "2026-05-16.1"
 
+    # Sequential stopping rule (bootstrapped CI on mean elapsed time)
+    BENCHMARK_MIN_ITERATIONS: int = 10
+    BENCHMARK_MIN_TIMED_WINDOW_SECONDS: int = 60
+    BENCHMARK_MAX_TIMED_WINDOW_SECONDS: int = 3600
+    BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE: float = 0.05
+    BENCHMARK_BOOTSTRAP_RESAMPLES: int = 1000
+    BENCHMARK_CI_CONFIDENCE: float = 0.95
+
     INGESTION_DELAY_SECONDS: int = 600
 
     # DATABRICKS
