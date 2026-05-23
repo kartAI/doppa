@@ -331,7 +331,9 @@ def monitor(
                     ],
                 )
 
-            if stop_reason is None:
+            if failure is not None:
+                stop_reason = StopReason.FAILED
+            elif stop_reason is None:
                 stop_reason = (
                     StopReason.FIXED if not use_sequential_stopping else StopReason.FAILED
                 )
