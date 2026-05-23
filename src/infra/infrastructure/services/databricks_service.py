@@ -152,6 +152,13 @@ class DatabricksService(IDatabricksService):
                 "spark.driver.memoryOverhead": Config.DATABRICKS_DRIVER_MEMORY_OVERHEAD,
                 f"spark.hadoop.fs.azure.account.auth.type.{Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME}.dfs.core.windows.net": "SharedKey",
                 f"spark.hadoop.fs.azure.account.key.{Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME}.dfs.core.windows.net": Config.AZURE_BLOB_STORAGE_ACCOUNT_KEY,
+                # Photon bypasses Sedona's custom Catalyst strategies
+                # (JoinQueryDetector), causing spatial joins to fall back to
+                # BroadcastNestedLoopJoin. Disabling it lets
+                # SedonaContext.create(spark) register extraStrategies that
+                # the classic Spark planner respects.
+                "spark.databricks.photon.enabled": "false",
+                "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
             },
         }
         response = requests.post(
