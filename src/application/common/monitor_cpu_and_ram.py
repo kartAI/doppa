@@ -84,6 +84,7 @@ def monitor_cpu_and_ram(
                 query_id=query_id,
                 run_id=run_id,
                 achieved_iterations=benchmark_iteration.value,
+                failed_iterations=0,
                 stop_reason=StopReason.FIXED,
                 ci_half_width_seconds=None,
                 ci_half_width_relative=None,

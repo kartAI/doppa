@@ -15,6 +15,7 @@ class IMonitoringStorageService(ABC):
             query_id: str,
             run_id: str,
             achieved_iterations: int,
+            failed_iterations: int,
             stop_reason: StopReason,
             ci_half_width_seconds: float | None,
             ci_half_width_relative: float | None,
@@ -33,9 +34,13 @@ class IMonitoringStorageService(ABC):
             main method and passed to this method.
         :param query_id: Query ID associated with the run which is passed from the main method.
         :param run_id: A unique identifier for the run.
-        :param achieved_iterations: Number of timed iterations actually executed (excludes warmup).
-        :param stop_reason: Why the iteration loop stopped (precision met, timeout, ceiling, fixed
-            count for Databricks, or failed).
+        :param achieved_iterations: Number of timed iterations that completed successfully (excludes
+            warmup and failed iterations).
+        :param failed_iterations: Number of timed iterations that raised an exception. Failed
+            iterations are persisted with status="failed" in their per-iteration sample row.
+        :param stop_reason: Why the iteration loop stopped (``precision`` met, ``timeout``,
+            ``ceiling``, ``fixed`` count for Databricks, ``partial`` for a run that mixed
+            successes and failures, or ``failed`` when no successful iteration completed).
         :param ci_half_width_seconds: Absolute half-width of the bootstrapped 95% CI on the mean
             elapsed time, in seconds. None when sequential stopping is disabled or the run failed
             before producing enough samples.

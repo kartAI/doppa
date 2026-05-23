@@ -6,4 +6,5 @@ class StopReason(Enum):
     TIMEOUT = "timeout"
     CEILING = "ceiling"
     FIXED = "fixed"
+    PARTIAL = "partial"
     FAILED = "failed"
