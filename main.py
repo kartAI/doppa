@@ -96,14 +96,20 @@ def _run_benchmarks(
             list(pool.map(_safe_run, experiments_to_run))
 
         if failed_ids:
-            batch_ids = [str(e["id"]) for e in experiments_to_run]
+            total = len(experiments_to_run)
+            all_failed = len(failed_ids) == total
+            detail = (
+                "Entire batch failed; no usable data from this batch."
+                if all_failed
+                else "Surviving peers ran without matched counterparts; "
+                "fair-comparison assumptions may not hold for this batch."
+            )
             logger.warning(
-                "Batch incomplete: %s of %s members failed (%s). "
-                "Surviving peers ran without matched counterparts; "
-                "fair-comparison assumptions may not hold for this batch.",
+                "Batch incomplete: %s of %s members failed (%s). %s",
                 len(failed_ids),
-                len(batch_ids),
+                total,
                 ", ".join(failed_ids),
+                detail,
             )
 
         for exp in experiments_to_run:
