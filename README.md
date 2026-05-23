@@ -243,14 +243,14 @@ laptop-workflow reference, not a scalable engine.
 The medium tier was dropped from the surviving RQ1 queries and `attribute-spatial-compound-filter` was removed
 across the board (issue #281); the 13 freed cells are reinvested in RQ2.
 
-**RQ2 — National-scale spatial join** (37 experiments, 14 batches)
+**RQ2 — National-scale spatial join** (29 experiments, 12 batches)
 
 | Engine / strategy   | `small`             | `medium`            | `large`                   |
 |---------------------|---------------------|---------------------|---------------------------|
 | Single-node         | duckdb · postgis    | duckdb · postgis    | duckdb · postgis          |
 | Sedona `broadcast`  | 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
 | Sedona `partitioned`| 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
-| Sedona `default`    | 2 / 4 / 8 nodes     | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
+| Sedona `default`    | —                   | —                   | 2 / 8 / 16 nodes          |
 
 Within each size column, single-node and Sedona experiments are packed into the same batches up to the 80 vCPU
 Databricks budget — the table groups by strategy for readability, not by batch membership. Concrete batch
@@ -259,10 +259,12 @@ membership is whatever `related_script_ids` in `benchmarks.yml` declares; see th
 The 2-node row is omitted at `small` for `broadcast` and `partitioned`: at ~5M polygons those configurations were
 weakly differentiated from `default`; the freed cells fund the 12-/16-node extension of the scaling curve at `large`.
 The `default` strategy applies no `broadcast()` hint and no Sedona partitioner configuration; Spark's cost-based
-optimizer picks the plan, so it serves as the apples-to-apples baseline against which `broadcast` and `partitioned`
-are compared.
+optimizer picks the plan. It is retained at the `large` tier only (2 / 8 / 16 nodes) as a within-Sedona illustration
+of CBO behaviour without hints; `small` and `medium` default cells and the intermediate `large`-tier 4-/12-node
+cells are pruned because the strategy is ~11× more expensive per iteration than `broadcast` and unstable at small
+cluster sizes (issue #309).
 
-**Batch listing.** Twenty batches in total. The Databricks vCPU column sums `(workers + 1) × 4` over Sedona members
+**Batch listing.** Eighteen batches in total. The Databricks vCPU column sums `(workers + 1) × 4` over Sedona members
 of the batch; single-node and DuckDB/Shapefile ACIs draw from a separate quota. Sequential execution order follows
 the seeded shuffle.
 
@@ -275,19 +277,17 @@ the seeded shuffle.
 | B1    | bbox-filtering              | small  | 0               | duckdb · postgis · local |
 | B2    | bbox-filtering              | large  | 0               | duckdb · postgis |
 | A_S1  | national-scale-spatial-join | small  | 72              | broadcast-8 · partitioned-8 · duckdb · postgis |
-| A_S2  | national-scale-spatial-join | small  | 76              | default-8 · broadcast-4 · partitioned-4 |
-| A_S3  | national-scale-spatial-join | small  | 32              | default-4 · default-2 |
+| A_S2  | national-scale-spatial-join | small  | 40              | broadcast-4 · partitioned-4 |
 | A_M1  | national-scale-spatial-join | medium | 72              | broadcast-8 · partitioned-8 · duckdb · postgis |
-| A_M2  | national-scale-spatial-join | medium | 76              | default-8 · broadcast-4 · partitioned-4 |
-| A_M3  | national-scale-spatial-join | medium | 56              | default-4 · broadcast-2 · partitioned-2 · default-2 |
+| A_M2  | national-scale-spatial-join | medium | 40              | broadcast-4 · partitioned-4 |
+| A_M3  | national-scale-spatial-join | medium | 24              | broadcast-2 · partitioned-2 |
 | A_L1  | national-scale-spatial-join | large  | 80              | broadcast-16 · broadcast-2 |
 | A_L2  | national-scale-spatial-join | large  | 80              | partitioned-16 · partitioned-2 |
 | A_L3  | national-scale-spatial-join | large  | 80              | default-16 · default-2 |
 | A_L4  | national-scale-spatial-join | large  | 72              | broadcast-12 · broadcast-4 |
 | A_L5  | national-scale-spatial-join | large  | 72              | partitioned-12 · partitioned-4 |
-| A_L6  | national-scale-spatial-join | large  | 72              | default-12 · default-4 |
-| A_L7  | national-scale-spatial-join | large  | 72              | broadcast-8 · partitioned-8 |
-| A_L8  | national-scale-spatial-join | large  | 36              | default-8 · duckdb · postgis |
+| A_L6  | national-scale-spatial-join | large  | 72              | broadcast-8 · partitioned-8 |
+| A_L7  | national-scale-spatial-join | large  | 36              | default-8 · duckdb · postgis |
 
 ## Dataset layout
 
