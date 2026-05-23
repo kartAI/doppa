@@ -36,6 +36,25 @@ python benchmark_runner.py --script-id <id> --benchmark-run 1 --run-id dev  # on
 
 `<id>` is any `id:` from `benchmarks.yml`. No lint/test/typecheck wired up; `pyrightconfig.json` exists for editor type checks.
 
+## Thesis integration
+
+The master thesis PDF lives at `~/Downloads/TBA4925_Master_thesis.pdf`. When a code change lands that could affect how the thesis describes the system or methodology, do the following:
+
+1. Read the PDF's table of contents (pages 8–10) to locate relevant chapter/section pages.
+2. Read those pages and compare against the code change.
+3. Identify any places where the thesis text needs updating (new sections, revised descriptions, corrected numbers, new threats to validity, etc.).
+4. Post findings as a comment on the matching GitHub Discussion, prefixed with `## From issue/PR #N` and grouped by section number. Discussions exist per chapter under the "General" category on `kartAI/doppa`:
+   - **Ch. 1: Introduction — Notes** (#316)
+   - **Ch. 2: Background — Notes** (#317)
+   - **Ch. 3: Related Work — Notes** (#318)
+   - **Ch. 4: Research Design and Methodology — Notes** (#314)
+   - **Ch. 5: System Architecture and Implementation — Notes** (#315)
+   - **Ch. 6: Results — Notes** (#319)
+   - **Ch. 7: Discussion — Notes** (#320)
+   - **Ch. 8: Conclusions — Notes** (#321)
+   - If a future chapter is added, create a new discussion following the same `Ch. N: <Title> — Notes` naming convention and body template (Purpose, Sections covered, Key topics, How to use).
+5. Split comments that span multiple chapters so each discussion only receives its own sections.
+
 <important if="you are adding a new benchmark">
 - Create `src/presentation/entrypoints/<name>.py`; re-export from `entrypoints/__init__.py`.
 - Add `case "<script-id>":` in `benchmark_runner.py`.
