@@ -143,15 +143,16 @@ experiments:
       - bbox-filtering-duckdb-large
 
   # ==================================================================
-  # RQ2 — National-scale spatial join (37 experiments)
+  # RQ2 — National-scale spatial join (29 experiments)
   # Single-node: DuckDB + PostGIS at small/medium/large (paired).
-  # Sedona: 3 strategies × variable worker counts × 3 sizes, unpaired
-  # (each provisions its own cluster). The `default` strategy is the
-  # apples-to-apples baseline against which `broadcast` and
-  # `partitioned` are compared. The 2-node row is omitted at small
-  # for `broadcast` and `partitioned` (weakly differentiated from
-  # `default`); the freed cells fund the 12-/16-node extension of the
-  # scaling curve at large.
+  # Sedona: broadcast + partitioned at variable worker counts × 3
+  # sizes, unpaired (each provisions its own cluster). The `default`
+  # strategy is retained at large tier only (2/8/16 nodes) as a
+  # within-Sedona baseline; small and medium default cells and
+  # large-tier 4-/12-node default cells are pruned (issue #309).
+  # The 2-node row is omitted at small for broadcast/partitioned
+  # (weakly differentiated from default); the freed cells fund the
+  # 12-/16-node extension of the scaling curve at large.
   # ==================================================================
 
   # ---- single-node ----
@@ -220,9 +221,7 @@ experiments:
     memory_gb: 8
     dataset_size: medium
     related_script_ids:
-      - national-scale-spatial-join-databricks-default-4-nodes-medium
       - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
-      - national-scale-spatial-join-databricks-default-2-nodes-medium
 
   - id: national-scale-spatial-join-databricks-broadcast-2-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-2-nodes:latest
@@ -238,7 +237,6 @@ experiments:
     memory_gb: 8
     dataset_size: small
     related_script_ids:
-      - national-scale-spatial-join-databricks-default-8-nodes-small
       - national-scale-spatial-join-databricks-partitioned-4-nodes-small
 
   - id: national-scale-spatial-join-databricks-broadcast-4-nodes-medium
@@ -247,7 +245,6 @@ experiments:
     memory_gb: 8
     dataset_size: medium
     related_script_ids:
-      - national-scale-spatial-join-databricks-default-8-nodes-medium
       - national-scale-spatial-join-databricks-partitioned-4-nodes-medium
 
   - id: national-scale-spatial-join-databricks-broadcast-4-nodes-large
@@ -309,9 +306,7 @@ experiments:
     memory_gb: 8
     dataset_size: medium
     related_script_ids:
-      - national-scale-spatial-join-databricks-default-4-nodes-medium
       - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
-      - national-scale-spatial-join-databricks-default-2-nodes-medium
 
   - id: national-scale-spatial-join-databricks-partitioned-2-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-2-nodes:latest
@@ -327,7 +322,6 @@ experiments:
     memory_gb: 8
     dataset_size: small
     related_script_ids:
-      - national-scale-spatial-join-databricks-default-8-nodes-small
       - national-scale-spatial-join-databricks-broadcast-4-nodes-small
 
   - id: national-scale-spatial-join-databricks-partitioned-4-nodes-medium
@@ -336,7 +330,6 @@ experiments:
     memory_gb: 8
     dataset_size: medium
     related_script_ids:
-      - national-scale-spatial-join-databricks-default-8-nodes-medium
       - national-scale-spatial-join-databricks-broadcast-4-nodes-medium
 
   - id: national-scale-spatial-join-databricks-partitioned-4-nodes-large
@@ -391,25 +384,7 @@ experiments:
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-large
 
-  # ---- Sedona default strategy (apples-to-apples baseline) ----
-  - id: national-scale-spatial-join-databricks-default-2-nodes-small
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-2-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      - national-scale-spatial-join-databricks-default-4-nodes-small
-
-  - id: national-scale-spatial-join-databricks-default-2-nodes-medium
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-2-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: medium
-    related_script_ids:
-      - national-scale-spatial-join-databricks-default-4-nodes-medium
-      - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
-      - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
-
+  # ---- Sedona default strategy (large tier only; issue #309) ----
   - id: national-scale-spatial-join-databricks-default-2-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-2-nodes:latest
     cpu: 3
@@ -417,50 +392,6 @@ experiments:
     dataset_size: large
     related_script_ids:
       - national-scale-spatial-join-databricks-default-16-nodes-large
-
-  - id: national-scale-spatial-join-databricks-default-4-nodes-small
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-4-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      - national-scale-spatial-join-databricks-default-2-nodes-small
-
-  - id: national-scale-spatial-join-databricks-default-4-nodes-medium
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-4-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: medium
-    related_script_ids:
-      - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
-      - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
-      - national-scale-spatial-join-databricks-default-2-nodes-medium
-
-  - id: national-scale-spatial-join-databricks-default-4-nodes-large
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-4-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: large
-    related_script_ids:
-      - national-scale-spatial-join-databricks-default-12-nodes-large
-
-  - id: national-scale-spatial-join-databricks-default-8-nodes-small
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-8-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: small
-    related_script_ids:
-      - national-scale-spatial-join-databricks-broadcast-4-nodes-small
-      - national-scale-spatial-join-databricks-partitioned-4-nodes-small
-
-  - id: national-scale-spatial-join-databricks-default-8-nodes-medium
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-8-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: medium
-    related_script_ids:
-      - national-scale-spatial-join-databricks-broadcast-4-nodes-medium
-      - national-scale-spatial-join-databricks-partitioned-4-nodes-medium
 
   - id: national-scale-spatial-join-databricks-default-8-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-8-nodes:latest
@@ -470,14 +401,6 @@ experiments:
     related_script_ids:
       - national-scale-spatial-join-duckdb-large
       - national-scale-spatial-join-postgis-large
-
-  - id: national-scale-spatial-join-databricks-default-12-nodes-large
-    image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-12-nodes:latest
-    cpu: 3
-    memory_gb: 8
-    dataset_size: large
-    related_script_ids:
-      - national-scale-spatial-join-databricks-default-4-nodes-large
 
   - id: national-scale-spatial-join-databricks-default-16-nodes-large
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-default-16-nodes:latest

@@ -1,0 +1,2 @@
+class QuotaExhaustedError(RuntimeError):
+    pass
