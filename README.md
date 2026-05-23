@@ -141,10 +141,20 @@ connection state, and Spark Catalyst plans on a warm Databricks cluster, while a
 the wall-clock budget (`Config.BENCHMARK_WARMUP_ITERATIONS=5` is the decorator default and applies to the
 high-frequency single-machine queries).
 
-The achieved iteration count, mean, median, bootstrapped CI half-width (both absolute seconds and as a fraction of
-the mean), and `stop_reason` (`precision`, `timeout`, `ceiling`, `fixed`, or `failed`) are persisted alongside the
-existing identifiers in `benchmark_metadata.parquet`, so downstream analysis can filter or report on each benchmark's
-stopping condition.
+Transient per-iteration failures (Spark `ExecutorLost`, blob-storage hiccups, JVM startup races) no longer abort the
+whole run. When an iteration raises, the decorator records a `status="failed"` sample at the per-iteration level,
+increments a counter, and continues with the next iteration. Only `Config.BENCHMARK_MAX_CONSECUTIVE_FAILURES=3`
+failures in a row abort the loop with `stop_reason="failed"` (interpreting a streak as "the cluster is genuinely
+broken now," not "one bad scheduling decision"). A run that completed via the normal stopping conditions but had at
+least one iteration fail along the way records `stop_reason="partial"` so analysis can tell mixed-result runs apart
+from clean ones.
+
+The achieved iteration count (successful only), failed iteration count, mean, median, bootstrapped CI half-width
+(both absolute seconds and as a fraction of the mean), and `stop_reason` (`precision`, `timeout`, `ceiling`, `fixed`,
+`partial`, or `failed`) are persisted alongside the existing identifiers in `benchmark_metadata.parquet`, so
+downstream analysis can filter or report on each benchmark's stopping condition. Mean, median, and the CI half-width
+are always computed over the successful samples only — failed iterations contribute to `failed_iterations` but never
+to the elapsed-time distribution.
 
 ### Engines under test
 

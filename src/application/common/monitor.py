@@ -137,6 +137,8 @@ def monitor(
                         )
 
             elapsed_samples: list[float] = []
+            failed_iterations: int = 0
+            consecutive_failures: int = 0
             bootstrap_rng = _make_bootstrap_rng(run_id=run_id, query_id=query_id)
             stop_reason: StopReason | None = None
             soft_ceiling_warned = False
@@ -160,81 +162,114 @@ def monitor(
                     ended_at = datetime.datetime.now(datetime.UTC)
 
                     if iter_exc is not None:
-                        failure = iter_exc
-                        failure_iteration = iteration
-                        failure_started_at = started_at
-                        failure_ended_at = ended_at
-                        failure_partial_sample = {
-                            "network_bytes_sent": net_bytes_sent,
-                            "network_bytes_received": net_bytes_received,
-                            "cpu_time_user_seconds": cpu_time_user_seconds,
-                            "cpu_time_system_seconds": cpu_time_system_seconds,
-                            "wall_elapsed_time": wall_elapsed_time,
-                        }
+                        failed_iterations += 1
+                        consecutive_failures += 1
                         ingress_sum += net_bytes_received
                         egress_sum += net_bytes_sent
-                        logger.error(
-                            f"Iteration {iteration} raised for query '{query_id}': "
-                            f"{iter_exc!r}. Failing fast; skipping remaining iterations."
+
+                        _save_run(
+                            run_id=run_id,
+                            benchmark_run=benchmark_run,
+                            query_id=query_id,
+                            iteration=iteration,
+                            total_iterations=ceiling,
+                            samples=[
+                                {
+                                    "status": "failed",
+                                    "failure_reason": str(iter_exc),
+                                    "elapsed_time": None,
+                                    "network_bytes_sent": net_bytes_sent,
+                                    "network_bytes_received": net_bytes_received,
+                                    "started_at": started_at.isoformat(),
+                                    "ended_at": ended_at.isoformat(),
+                                    "cpu_time_user_seconds": cpu_time_user_seconds,
+                                    "cpu_time_system_seconds": cpu_time_system_seconds,
+                                    "result_cardinality": None,
+                                    "executor_input_bytes_read": None,
+                                    "executor_run_time_ms": None,
+                                    "shuffle_read_bytes": None,
+                                    "shuffle_write_bytes": None,
+                                    "driver_collection_time_ms": None,
+                                    "stage_durations_ms": None,
+                                    "schema_version": SchemaVersion.V4.value,
+                                }
+                            ],
                         )
-                        stop_reason = StopReason.FAILED
-                        break
 
-                    executor_input_bytes_read = None
-                    executor_run_time_ms = None
-                    shuffle_read_bytes = None
-                    shuffle_write_bytes = None
-                    driver_collection_time_ms = None
-                    stage_durations_ms = None
+                        logger.warning(
+                            f"Iteration {iteration} raised for '{query_id}': {iter_exc!r}. "
+                            f"failed_total={failed_iterations}, "
+                            f"consecutive={consecutive_failures}. Continuing past failure."
+                        )
 
-                    if elapsed_from_result:
-                        if isinstance(result, DatabricksRunResult):
-                            elapsed_time = result.execution_duration_s
-                            result_cardinality = result.cardinality
-                            executor_input_bytes_read = result.executor_input_bytes_read
-                            executor_run_time_ms = result.executor_run_time_ms
-                            shuffle_read_bytes = result.shuffle_read_bytes
-                            shuffle_write_bytes = result.shuffle_write_bytes
-                            driver_collection_time_ms = result.driver_collection_time_ms
-                            stage_durations_ms = result.stage_durations_ms
-                        else:
-                            elapsed_time, result_cardinality = result
+                        if (
+                            consecutive_failures
+                            >= Config.BENCHMARK_MAX_CONSECUTIVE_FAILURES
+                        ):
+                            stop_reason = StopReason.FAILED
+                            logger.error(
+                                f"Hit {Config.BENCHMARK_MAX_CONSECUTIVE_FAILURES} "
+                                f"consecutive iteration failures for '{query_id}'; aborting."
+                            )
+                            break
                     else:
-                        elapsed_time = wall_elapsed_time
-                        result_cardinality = len(result) if result is not None else -1
+                        consecutive_failures = 0
 
-                    ingress_sum += net_bytes_received
-                    egress_sum += net_bytes_sent
-                    elapsed_samples.append(elapsed_time)
+                        executor_input_bytes_read = None
+                        executor_run_time_ms = None
+                        shuffle_read_bytes = None
+                        shuffle_write_bytes = None
+                        driver_collection_time_ms = None
+                        stage_durations_ms = None
 
-                    _save_run(
-                        run_id=run_id,
-                        benchmark_run=benchmark_run,
-                        query_id=query_id,
-                        iteration=iteration,
-                        total_iterations=ceiling,
-                        samples=[
-                            {
-                                "status": "success",
-                                "failure_reason": None,
-                                "elapsed_time": elapsed_time,
-                                "network_bytes_sent": net_bytes_sent,
-                                "network_bytes_received": net_bytes_received,
-                                "started_at": started_at.isoformat(),
-                                "ended_at": ended_at.isoformat(),
-                                "cpu_time_user_seconds": cpu_time_user_seconds,
-                                "cpu_time_system_seconds": cpu_time_system_seconds,
-                                "result_cardinality": result_cardinality,
-                                "executor_input_bytes_read": executor_input_bytes_read,
-                                "executor_run_time_ms": executor_run_time_ms,
-                                "shuffle_read_bytes": shuffle_read_bytes,
-                                "shuffle_write_bytes": shuffle_write_bytes,
-                                "driver_collection_time_ms": driver_collection_time_ms,
-                                "stage_durations_ms": stage_durations_ms,
-                                "schema_version": SchemaVersion.V4.value,
-                            }
-                        ],
-                    )
+                        if elapsed_from_result:
+                            if isinstance(result, DatabricksRunResult):
+                                elapsed_time = result.execution_duration_s
+                                result_cardinality = result.cardinality
+                                executor_input_bytes_read = result.executor_input_bytes_read
+                                executor_run_time_ms = result.executor_run_time_ms
+                                shuffle_read_bytes = result.shuffle_read_bytes
+                                shuffle_write_bytes = result.shuffle_write_bytes
+                                driver_collection_time_ms = result.driver_collection_time_ms
+                                stage_durations_ms = result.stage_durations_ms
+                            else:
+                                elapsed_time, result_cardinality = result
+                        else:
+                            elapsed_time = wall_elapsed_time
+                            result_cardinality = len(result) if result is not None else -1
+
+                        ingress_sum += net_bytes_received
+                        egress_sum += net_bytes_sent
+                        elapsed_samples.append(elapsed_time)
+
+                        _save_run(
+                            run_id=run_id,
+                            benchmark_run=benchmark_run,
+                            query_id=query_id,
+                            iteration=iteration,
+                            total_iterations=ceiling,
+                            samples=[
+                                {
+                                    "status": "success",
+                                    "failure_reason": None,
+                                    "elapsed_time": elapsed_time,
+                                    "network_bytes_sent": net_bytes_sent,
+                                    "network_bytes_received": net_bytes_received,
+                                    "started_at": started_at.isoformat(),
+                                    "ended_at": ended_at.isoformat(),
+                                    "cpu_time_user_seconds": cpu_time_user_seconds,
+                                    "cpu_time_system_seconds": cpu_time_system_seconds,
+                                    "result_cardinality": result_cardinality,
+                                    "executor_input_bytes_read": executor_input_bytes_read,
+                                    "executor_run_time_ms": executor_run_time_ms,
+                                    "shuffle_read_bytes": shuffle_read_bytes,
+                                    "shuffle_write_bytes": shuffle_write_bytes,
+                                    "driver_collection_time_ms": driver_collection_time_ms,
+                                    "stage_durations_ms": stage_durations_ms,
+                                    "schema_version": SchemaVersion.V4.value,
+                                }
+                            ],
+                        )
 
                     if not use_sequential_stopping:
                         if iteration >= ceiling:
@@ -260,7 +295,7 @@ def monitor(
                         window_seconds >= Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS
                     )
                     if (
-                        iteration >= Config.BENCHMARK_MIN_ITERATIONS
+                        len(elapsed_samples) >= Config.BENCHMARK_MIN_ITERATIONS
                         and floor_met
                     ):
                         mean, _median, half_width = _bootstrap_ci_half_width(
@@ -338,6 +373,14 @@ def monitor(
                     StopReason.FIXED if not use_sequential_stopping else StopReason.FAILED
                 )
 
+            if stop_reason in (
+                StopReason.PRECISION,
+                StopReason.CEILING,
+                StopReason.FIXED,
+                StopReason.TIMEOUT,
+            ) and failed_iterations > 0:
+                stop_reason = StopReason.PARTIAL
+
             if elapsed_samples:
                 final_mean, final_median, final_half_width = _bootstrap_ci_half_width(
                     samples=elapsed_samples,
@@ -362,13 +405,15 @@ def monitor(
             end_time = datetime.datetime.now(datetime.UTC)
             logger.info(
                 f"Benchmark runs completed in {round((end_time - start_time).total_seconds(), 2)} "
-                f"seconds (achieved_iterations={achieved_iterations}, stop_reason={stop_reason.value})."
+                f"seconds (achieved_iterations={achieved_iterations}, "
+                f"failed_iterations={failed_iterations}, stop_reason={stop_reason.value})."
             )
 
             _save_run_metadata(
                 query_id=query_id,
                 run_id=run_id,
                 achieved_iterations=achieved_iterations,
+                failed_iterations=failed_iterations,
                 stop_reason=stop_reason,
                 ci_half_width_seconds=ci_half_width_seconds,
                 ci_half_width_relative=ci_half_width_relative,
