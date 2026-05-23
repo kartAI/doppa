@@ -69,7 +69,7 @@ jobs:
             --image ${{ vars.ACR_LOGIN_SERVER }}/setup-framework:latest \
             --location norwayeast \
             --cpu 8 \
-            --memory 32 \
+            --memory 64 \
             --os-type Linux \
             --restart-policy Never \
             --assign-identity "$AZURE_UAMI_RESOURCE_ID" \
