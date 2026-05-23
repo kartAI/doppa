@@ -218,19 +218,43 @@ def _ensure_azure_login() -> None:
 
 
 # noinspection PyDeprecation
-def _run_cmd(cmd: list[str], suppress_error_log: bool = False) -> str:
+def _run_cmd(
+    cmd: list[str],
+    suppress_error_log: bool = False,
+    retries: int = 3,
+    backoff_seconds: float = 10,
+) -> str:
     az_path = shutil.which(cmd[0])
     if az_path is not None:
         cmd[0] = az_path
 
-    result = subprocess.run(
-        cmd, capture_output=True, text=True, check=False, shell=False
-    )
+    last_error: RuntimeError | None = None
+    for attempt in range(1, retries + 1):
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=False, shell=False
+        )
 
-    if result.returncode != 0:
+        if result.returncode == 0:
+            return result.stdout
+
+        stderr = result.stderr.strip()
+        is_transient = any(
+            marker in stderr
+            for marker in ("Connection aborted", "ConnectionError", "BadStatusLine", "status code 0")
+        )
+
+        if is_transient and attempt < retries:
+            wait = backoff_seconds * attempt
+            logger.warning(
+                "Transient failure (attempt %s/%s, exit %s). Retrying in %ss.",
+                attempt, retries, result.returncode, wait,
+            )
+            time.sleep(wait)
+            last_error = RuntimeError(f"Command failed with exit code {result.returncode}")
+            continue
+
         cmd_str = " ".join(cmd)
         if not suppress_error_log:
-            stderr = result.stderr.strip()
             stdout = result.stdout.strip()
             logger.error(
                 "Command failed (exit %s): %s | stderr: %s%s",
@@ -243,12 +267,12 @@ def _run_cmd(cmd: list[str], suppress_error_log: bool = False) -> str:
             logger.debug(
                 "Soft-check command failure: %s | stderr: %s",
                 cmd_str,
-                result.stderr.strip(),
+                stderr,
             )
 
         raise RuntimeError(f"Command failed with exit code {result.returncode}")
 
-    return result.stdout
+    raise last_error or RuntimeError("Command failed after retries")
 
 
 def _container_exists(container_group_name: str) -> bool:
