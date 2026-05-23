@@ -139,6 +139,7 @@ class Config:
     DATABRICKS_HTTP_TIMEOUT_SECONDS: int = 30
     DATABRICKS_DRIVER_MEMORY: str = "9g"
     DATABRICKS_DRIVER_MEMORY_OVERHEAD: str = "512m"
+    DATABRICKS_DRIVER_MAX_RESULT_SIZE: str = "8g"
     DATABRICKS_SEDONA_MAVEN_COORDINATES: str = (
         "org.apache.sedona:sedona-spark-shaded-3.5_2.12:1.7.1"
     )
