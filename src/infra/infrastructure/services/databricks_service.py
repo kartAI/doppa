@@ -150,6 +150,7 @@ class DatabricksService(IDatabricksService):
             "spark_conf": {
                 "spark.driver.memory": Config.DATABRICKS_DRIVER_MEMORY,
                 "spark.driver.memoryOverhead": Config.DATABRICKS_DRIVER_MEMORY_OVERHEAD,
+                "spark.driver.maxResultSize": Config.DATABRICKS_DRIVER_MAX_RESULT_SIZE,
                 f"spark.hadoop.fs.azure.account.auth.type.{Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME}.dfs.core.windows.net": "SharedKey",
                 f"spark.hadoop.fs.azure.account.key.{Config.AZURE_BLOB_STORAGE_ACCOUNT_NAME}.dfs.core.windows.net": Config.AZURE_BLOB_STORAGE_ACCOUNT_KEY,
                 # Photon bypasses Sedona's custom Catalyst strategies
