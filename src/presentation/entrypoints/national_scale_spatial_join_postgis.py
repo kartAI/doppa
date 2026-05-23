@@ -55,6 +55,12 @@ def _seed_municipalities(
 
     with postgres_context.connect() as conn:
         gdf.to_postgis("municipalities", con=conn, if_exists="replace", index=False)
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS municipalities_geometry_idx "
+            "ON municipalities USING GIST (geometry)"
+        ))
+        conn.execute(text("ANALYZE municipalities"))
+        conn.commit()
 
     logger.info(f"Seeded {len(gdf)} municipalities into PostgreSQL.")
 
