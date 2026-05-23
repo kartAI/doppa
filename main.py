@@ -78,12 +78,15 @@ def _run_benchmarks(
 
             experiments_to_run.append(related_experiment)
 
+        failed_ids: list[str] = []
+
         def _safe_run(exp: dict[str, str | int | list[str]]) -> None:
             try:
                 _run_container_benchmark(
                     experiment=exp, run_id=run_id, benchmark_run=benchmark_run
                 )
             except Exception as exc:
+                failed_ids.append(str(exp["id"]))
                 logger.error(
                     f"Experiment '{exp['id']}' failed at orchestrator level; "
                     f"continuing with remaining experiments. Error: {exc!r}"
@@ -91,6 +94,17 @@ def _run_benchmarks(
 
         with ThreadPoolExecutor(max_workers=10) as pool:
             list(pool.map(_safe_run, experiments_to_run))
+
+        if failed_ids:
+            batch_ids = [str(e["id"]) for e in experiments_to_run]
+            logger.warning(
+                "Batch incomplete: %s of %s members failed (%s). "
+                "Surviving peers ran without matched counterparts; "
+                "fair-comparison assumptions may not hold for this batch.",
+                len(failed_ids),
+                len(batch_ids),
+                ", ".join(failed_ids),
+            )
 
         for exp in experiments_to_run:
             completed_experiments.append(str(exp["id"]))

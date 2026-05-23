@@ -17,6 +17,7 @@ from src.domain.enums import (
     DatabricksRunResultState,
     DatasetSize,
 )
+from src.domain.exceptions import QuotaExhaustedError
 
 
 NotebookVariant = Literal["broadcast", "partitioned", "default"]
@@ -160,8 +161,14 @@ class DatabricksService(IDatabricksService):
             timeout=Config.DATABRICKS_HTTP_TIMEOUT_SECONDS,
         )
         if not response.ok:
+            text = response.text
+            if "QuotaExceeded" in text or "quota" in text.lower():
+                raise QuotaExhaustedError(
+                    f"Databricks cluster creation blocked by quota: "
+                    f"{response.status_code}: {text}"
+                )
             raise RuntimeError(
-                f"Databricks clusters/create failed with {response.status_code}: {response.text}"
+                f"Databricks clusters/create failed with {response.status_code}: {text}"
             )
         cluster_id: str = str(response.json()["cluster_id"])
         logger.info(
@@ -242,6 +249,11 @@ class DatabricksService(IDatabricksService):
                 return
             if state in DatabricksClusterState.non_running_terminal_values():
                 state_message = data.get("state_message", "")
+                if "QuotaExceeded" in state_message or "quota" in state_message.lower():
+                    raise QuotaExhaustedError(
+                        f"Cluster {cluster_id} terminated due to quota exhaustion. "
+                        f"State: '{state}', message: {state_message}"
+                    )
                 raise RuntimeError(
                     f"Cluster {cluster_id} reached unexpected state '{state}' "
                     f"before RUNNING. State message: {state_message}"

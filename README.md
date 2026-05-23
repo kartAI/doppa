@@ -215,9 +215,9 @@ The 44 experiments are packed into 18 batches under four constraints that the `r
    regional VM pressure are comparable across batch members.
 3. **At most one PostGIS experiment** per batch — Azure Database for PostgreSQL is a single shared instance and two
    concurrent PostGIS queries would contend on shared buffers, OS page cache, and CPU.
-4. **At most 80 Databricks cluster vCPU** per batch — `Standard_D4s_v3` is 4 vCPU per node, each Sedona cluster
+4. **At most 200 Databricks cluster vCPU** per batch — `Standard_D4s_v3` is 4 vCPU per node, each Sedona cluster
    uses `(workers + 1) × 4` vCPU (driver + workers), and the Databricks workspace's regional quota for that VM
-   family is 80. DuckDB, Shapefile, and PostGIS draw from a separate ACI quota and do not count.
+   family is 200. DuckDB, Shapefile, and PostGIS draw from a separate ACI quota and do not count.
 
 DuckDB and Shapefile experiments are process-local inside their own ACI, so multiple of either may run concurrently
 without disturbing each other. Each Sedona variant provisions its own Databricks cluster on disjoint VMs, so two
@@ -252,7 +252,7 @@ across the board (issue #281); the 13 freed cells are reinvested in RQ2.
 | Sedona `partitioned`| 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
 | Sedona `default`    | —                   | —                   | 2 / 8 / 16 nodes          |
 
-Within each size column, single-node and Sedona experiments are packed into the same batches up to the 80 vCPU
+Within each size column, single-node and Sedona experiments are packed into the same batches up to the 200 vCPU
 Databricks budget — the table groups by strategy for readability, not by batch membership. Concrete batch
 membership is whatever `related_script_ids` in `benchmarks.yml` declares; see the batch listing below.
 
@@ -516,11 +516,10 @@ To request a quota increase:
 1. Navigate to the [Azure Portal](https://portal.azure.com) → **Subscriptions** → your subscription →
    **Settings** → **Usage + quotas**
 2. Filter by region (e.g. Sweden Central) and search for `Standard DSv3 Family vCPUs`
-3. Click the pencil icon and request at least **72 vCPUs** (16 workers × 4 vCPU + 8 vCPU driver headroom)
+3. Click the pencil icon and request at least **200 vCPUs** to accommodate concurrent multi-node clusters within a batch
 4. Provide a justification (e.g. "Running distributed Spark benchmarks") and submit
 
-Quota increases for small VM families are typically approved automatically within minutes. The 12-node row in the
-RQ2 matrix exists partly as a hedge in case the 16-node quota request is delayed or only partially approved.
+Quota increases for small VM families are typically approved automatically within minutes.
 
 ##### 2. Create the workspace
 
