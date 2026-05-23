@@ -228,7 +228,7 @@ def _run_cmd(
     if az_path is not None:
         cmd[0] = az_path
 
-    last_error: RuntimeError | None = None
+    retries = max(1, retries)
     for attempt in range(1, retries + 1):
         result = subprocess.run(
             cmd, capture_output=True, text=True, check=False, shell=False
@@ -244,13 +244,14 @@ def _run_cmd(
         )
 
         if is_transient and attempt < retries:
+            cmd_str = " ".join(cmd)
             wait = backoff_seconds * attempt
             logger.warning(
-                "Transient failure (attempt %s/%s, exit %s). Retrying in %ss.",
-                attempt, retries, result.returncode, wait,
+                "Transient failure (attempt %s/%s, exit %s): %s | stderr: %s. "
+                "Retrying in %ss.",
+                attempt, retries, result.returncode, cmd_str, stderr, wait,
             )
             time.sleep(wait)
-            last_error = RuntimeError(f"Command failed with exit code {result.returncode}")
             continue
 
         cmd_str = " ".join(cmd)
@@ -272,7 +273,7 @@ def _run_cmd(
 
         raise RuntimeError(f"Command failed with exit code {result.returncode}")
 
-    raise last_error or RuntimeError("Command failed after retries")
+    raise RuntimeError("Unreachable: retries exhausted")
 
 
 def _container_exists(container_group_name: str) -> bool:
