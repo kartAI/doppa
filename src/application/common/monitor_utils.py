@@ -84,7 +84,7 @@ def _save_run_metadata(
         Containers.monitoring_storage_service
     ],
 ) -> None:
-    logger.info("Saving benchmark metadata to blob storage.")
+    logger.debug("Saving benchmark metadata to blob storage.")
     metadata_id = str(uuid.uuid4())
     timestamp = datetime.datetime.now(datetime.timezone.utc)
     monitoring_storage_service.write_metadata_to_blob_storage(
@@ -101,7 +101,7 @@ def _save_run_metadata(
         median_elapsed_seconds=median_elapsed_seconds,
     )
 
-    logger.info(f"Benchmark metadata saved with ID '{metadata_id}'.")
+    logger.debug(f"Benchmark metadata saved with ID '{metadata_id}'.")
 
 
 @inject
@@ -122,7 +122,7 @@ def _save_run_cost_analytics(
     benchmark_run = _get_benchmark_run()
     if cost_configuration.include_aci:
         aci_cost = azure_cost_service.compute_aci_cost(query_id, start_time, end_time)
-        logger.info(f"Computed ACI cost: {aci_cost.to_dict()}")
+        logger.debug(f"Computed ACI cost: {aci_cost.to_dict()}")
         monitoring_storage_service.write_cost_analytics_to_blob_storage(
             query_id=query_id,
             run_id=run_id,
@@ -140,7 +140,7 @@ def _save_run_cost_analytics(
         blob_cost = azure_cost_service.compute_blob_storage_cost(
             start_time, end_time, bytes_ingress, bytes_egress, operation_type
         )
-        logger.info(f"Computed Blob Storage cost: {blob_cost.to_dict()}")
+        logger.debug(f"Computed Blob Storage cost: {blob_cost.to_dict()}")
         monitoring_storage_service.write_cost_analytics_to_blob_storage(
             query_id=query_id,
             run_id=run_id,
@@ -151,7 +151,7 @@ def _save_run_cost_analytics(
 
     if cost_configuration.include_postgres:
         postgres_cost = azure_cost_service.compute_database_cost(start_time, end_time)
-        logger.info(f"Computed PostgreSQL cost: {postgres_cost.to_dict()}")
+        logger.debug(f"Computed PostgreSQL cost: {postgres_cost.to_dict()}")
         monitoring_storage_service.write_cost_analytics_to_blob_storage(
             query_id=query_id,
             run_id=run_id,
@@ -168,7 +168,7 @@ def _save_run_cost_analytics(
             num_workers=cost_configuration.num_workers,
             bytes_egress=egress,
         )
-        logger.info(f"Computed Databricks cost: {databricks_cost.to_dict()}")
+        logger.debug(f"Computed Databricks cost: {databricks_cost.to_dict()}")
         monitoring_storage_service.write_cost_analytics_to_blob_storage(
             query_id=query_id,
             run_id=run_id,

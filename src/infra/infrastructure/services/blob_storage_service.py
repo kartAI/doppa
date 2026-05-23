@@ -49,7 +49,7 @@ class BlobStorageService(IBlobStorageService):
 
     def download_file(self, container_name: StorageContainer, blob_name: str) -> bytes | None:
         try:
-            logger.info(f"Downloading bytes from blob '{blob_name}' from container '{container_name.value}'.")
+            logger.debug(f"Downloading bytes from blob '{blob_name}' from container '{container_name.value}'.")
             container = self.get_container(container_name)
             blob_client = container.get_blob_client(blob_name)
             data = blob_client.download_blob().readall()

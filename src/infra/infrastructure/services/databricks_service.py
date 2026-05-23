@@ -233,6 +233,8 @@ class DatabricksService(IDatabricksService):
         logger.info(f"Requested library install on cluster {cluster_id}.")
 
     def _wait_for_cluster_running(self, cluster_id: str) -> None:
+        last_state = None
+        poll_start = time.monotonic()
         while True:
             try:
                 response = requests.get(
@@ -251,7 +253,10 @@ class DatabricksService(IDatabricksService):
                 continue
             data = response.json()
             state = data.get("state", "")
-            logger.info(f"Cluster {cluster_id}: state={state}")
+            if state != last_state:
+                elapsed = time.monotonic() - poll_start
+                logger.info(f"Cluster {cluster_id}: state={state} ({elapsed:.0f}s elapsed)")
+                last_state = state
             if state == DatabricksClusterState.RUNNING.value:
                 return
             if state in DatabricksClusterState.non_running_terminal_values():
@@ -268,6 +273,7 @@ class DatabricksService(IDatabricksService):
             time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
 
     def _wait_for_libraries_installed(self, cluster_id: str) -> None:
+        last_summary = None
         while True:
             try:
                 response = requests.get(
@@ -287,9 +293,11 @@ class DatabricksService(IDatabricksService):
             data = response.json()
             statuses = data.get("library_statuses", [])
             if not statuses:
-                logger.info(
-                    f"Cluster {cluster_id}: no library statuses reported yet. Waiting."
-                )
+                if last_summary is None:
+                    logger.info(
+                        f"Cluster {cluster_id}: no library statuses reported yet. Waiting."
+                    )
+                    last_summary = ""
                 time.sleep(Config.DATABRICKS_POLL_INTERVAL_SECONDS)
                 continue
 
@@ -297,7 +305,9 @@ class DatabricksService(IDatabricksService):
                 f"{self._library_label(s.get('library', {}))}={s.get('status', '')}"
                 for s in statuses
             )
-            logger.info(f"Cluster {cluster_id} library status: {summary}")
+            if summary != last_summary:
+                logger.info(f"Cluster {cluster_id} library status: {summary}")
+                last_summary = summary
 
             failed = [
                 s
@@ -419,6 +429,8 @@ class DatabricksService(IDatabricksService):
         required by /api/2.1/jobs/runs/get-output. Passing the parent run id to
         get-output returns 400 Bad Request.
         """
+        last_state_msg = None
+        poll_start = time.monotonic()
         while True:
             try:
                 response = requests.get(
@@ -444,7 +456,10 @@ class DatabricksService(IDatabricksService):
             state_msg = f"life_cycle_state={life_cycle_state}"
             if result_state:
                 state_msg += f", result_state={result_state}"
-            logger.info(f"Run {run_id}: {state_msg}")
+            if state_msg != last_state_msg:
+                elapsed = time.monotonic() - poll_start
+                logger.info(f"Run {run_id}: {state_msg} ({elapsed:.0f}s elapsed)")
+                last_state_msg = state_msg
 
             if life_cycle_state in DatabricksRunLifecycleState.terminal_values():
                 if result_state != DatabricksRunResultState.SUCCESS.value:

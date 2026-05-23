@@ -5,6 +5,7 @@ import random
 import shutil
 import string
 import subprocess
+import threading
 import time
 from datetime import date
 from concurrent.futures import ThreadPoolExecutor
@@ -63,10 +64,17 @@ def _run_benchmarks(
     completed_experiments: list[str] = []
     _clear_all_container_instances(experiments)
 
+    total_batches = _count_batches(experiments)
+    current_batch = 0
+    batch_durations: list[float] = []
+    suite_start = time.monotonic()
+
     for experiment in experiments:
         experiment_id = experiment["id"]
         if experiment_id in completed_experiments:
             continue
+
+        current_batch += 1
 
         related_experiment_ids = experiment["related_script_ids"]
         experiments_to_run: list[dict[str, int | str | list[str]]] = [experiment]
@@ -78,6 +86,18 @@ def _run_benchmarks(
 
             experiments_to_run.append(related_experiment)
 
+        batch_ids = [str(exp["id"]) for exp in experiments_to_run]
+        pct = (current_batch - 1) / total_batches * 100
+        eta = _estimate_eta(batch_durations, total_batches - current_batch + 1)
+        logger.info(
+            "[%s/%s] %s%% — Starting batch: %s%s",
+            current_batch, total_batches, f"{pct:.0f}", batch_ids, eta,
+        )
+
+        batch_start = time.monotonic()
+        batch_size = len(experiments_to_run)
+        batch_done = [0]
+        batch_lock = threading.Lock()
         failed_ids: list[str] = []
 
         def _safe_run(exp: dict[str, str | int | list[str]]) -> None:
@@ -91,9 +111,19 @@ def _run_benchmarks(
                     f"Experiment '{exp['id']}' failed at orchestrator level; "
                     f"continuing with remaining experiments. Error: {exc!r}"
                 )
+            finally:
+                with batch_lock:
+                    batch_done[0] += 1
+                    logger.info(
+                        "  [%s/%s in batch] '%s' done",
+                        batch_done[0], batch_size, exp["id"],
+                    )
 
         with ThreadPoolExecutor(max_workers=10) as pool:
             list(pool.map(_safe_run, experiments_to_run))
+
+        batch_elapsed = time.monotonic() - batch_start
+        batch_durations.append(batch_elapsed)
 
         if failed_ids:
             total = len(experiments_to_run)
@@ -115,8 +145,20 @@ def _run_benchmarks(
         for exp in experiments_to_run:
             completed_experiments.append(str(exp["id"]))
 
+        pct = current_batch / total_batches * 100
+        eta = _estimate_eta(batch_durations, total_batches - current_batch)
+        logger.info(
+            "[%s/%s] %s%% — Batch done in %s%s",
+            current_batch, total_batches, f"{pct:.0f}",
+            _format_duration(batch_elapsed), eta,
+        )
+
     _clear_all_container_instances(experiments)
-    logger.info(f"Completed benchmark run {benchmark_run}/{Config.BENCHMARK_RUNS}.")
+    total_elapsed = time.monotonic() - suite_start
+    logger.info(
+        f"Completed benchmark run {benchmark_run}/{Config.BENCHMARK_RUNS} "
+        f"in {_format_duration(total_elapsed)}."
+    )
 
 
 def _run_container_benchmark(
@@ -350,16 +392,23 @@ def _stream_container_logs(container_group_name: str, lines_seen: int) -> int:
         else:
             level, message = "info", line
 
-        log_fn = getattr(logger, level, logger.info)
+        if level not in ("warning", "error", "critical"):
+            continue
+
+        log_fn = getattr(logger, level, logger.warning)
         log_fn("[%s] %s", container_group_name, message)
 
     return len(lines)
 
 
 def _check_container_state(
-    container_group_name: str, poll_interval_seconds: float = 5
+    container_group_name: str,
+    poll_interval_seconds: float = 5,
+    heartbeat_interval_seconds: float = 300,
 ) -> None:
     lines_seen = 0
+    start = time.monotonic()
+    last_heartbeat = start
 
     while True:
         show_command = [
@@ -381,8 +430,9 @@ def _check_container_state(
             case "Succeeded":
                 time.sleep(5)
                 lines_seen = _stream_container_logs(container_group_name, lines_seen)
+                elapsed = time.monotonic() - start
                 logger.info(
-                    f"Container '{container_group_name}' | State: '{state}' | Benchmark run completed."
+                    f"Container '{container_group_name}' completed in {_format_duration(elapsed)}."
                 )
                 break
             case "Failed":
@@ -393,7 +443,45 @@ def _check_container_state(
                 raise RuntimeError(error_message)
             case _:
                 lines_seen = _stream_container_logs(container_group_name, lines_seen)
+                now = time.monotonic()
+                if now - last_heartbeat >= heartbeat_interval_seconds:
+                    elapsed = now - start
+                    logger.info(
+                        f"[{container_group_name}] Still running ({_format_duration(elapsed)} elapsed)"
+                    )
+                    last_heartbeat = now
                 time.sleep(poll_interval_seconds)
+
+
+def _count_batches(experiments: list[dict[str, str | int | list[str]]]) -> int:
+    seen: set[str] = set()
+    count = 0
+    for exp in experiments:
+        exp_id = str(exp["id"])
+        if exp_id in seen:
+            continue
+        count += 1
+        seen.add(exp_id)
+        for rid in exp.get("related_script_ids", []):
+            seen.add(str(rid))
+    return count
+
+
+def _format_duration(seconds: float) -> str:
+    if seconds < 60:
+        return f"{seconds:.0f}s"
+    minutes = seconds / 60
+    if minutes < 60:
+        return f"{minutes:.1f}min"
+    hours = minutes / 60
+    return f"{hours:.1f}h"
+
+
+def _estimate_eta(batch_durations: list[float], remaining: int) -> str:
+    if not batch_durations or remaining <= 0:
+        return ""
+    avg = sum(batch_durations) / len(batch_durations)
+    return f" — ETA: {_format_duration(avg * remaining)}"
 
 
 def _assert_related_ids_resolvable(
