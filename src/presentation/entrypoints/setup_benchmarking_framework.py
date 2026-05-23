@@ -214,6 +214,7 @@ def _seed_postgres_for_size(
                 f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} USING GIST (geometry)"
             )
         )
+        conn.execute(text(f"ANALYZE {table_name}"))
         conn.commit()
         logger.info(f"Spatial index '{index_name}' created.")
 
