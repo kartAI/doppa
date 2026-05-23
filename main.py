@@ -385,12 +385,14 @@ def _stream_container_logs(container_group_name: str, lines_seen: int) -> int:
         return lines_seen
 
     lines = [line for line in output.splitlines() if line.strip()]
+    last_level = "info"
     for line in lines[lines_seen:]:
         parts = line.split(" - ", 2)
         if len(parts) == 3:
             level, message = parts[1].strip().lower(), parts[2]
+            last_level = level
         else:
-            level, message = "info", line
+            level, message = last_level, line
 
         if level not in ("warning", "error", "critical"):
             continue
