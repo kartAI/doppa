@@ -157,26 +157,27 @@ _original_broadcast_threshold = spark.conf.get("spark.sql.autoBroadcastJoinThres
 spark.conf.set("spark.sql.adaptive.enabled", "false")
 spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "-1")
 
-start_time = time.perf_counter()
+try:
+    start_time = time.perf_counter()
 
-result = (
-    municipalities_df.alias("m")
-    .join(
-        buildings_df.alias("b"),
-        F.expr("ST_Intersects(m.geometry, b.geometry)"),
+    result = (
+        municipalities_df.alias("m")
+        .join(
+            buildings_df.alias("b"),
+            F.expr("ST_Intersects(m.geometry, b.geometry)"),
+        )
+        .groupBy(F.col("m.municipality_name"))
+        .agg(F.count(F.col("b.geometry")).alias("building_count"))
+        .orderBy(F.desc("building_count"))
     )
-    .groupBy(F.col("m.municipality_name"))
-    .agg(F.count(F.col("b.geometry")).alias("building_count"))
-    .orderBy(F.desc("building_count"))
-)
-cardinality = result.count()
-elapsed_seconds = time.perf_counter() - start_time
+    cardinality = result.count()
+    elapsed_seconds = time.perf_counter() - start_time
 
-spark.conf.set("spark.sql.adaptive.enabled", _original_aqe)
-spark.conf.set("spark.sql.autoBroadcastJoinThreshold", _original_broadcast_threshold)
-
-print(f"Spatial join complete. Regions with matched buildings: {cardinality}")
-print(f"Elapsed seconds: {elapsed_seconds:.3f}")
+    print(f"Spatial join complete. Regions with matched buildings: {cardinality}")
+    print(f"Elapsed seconds: {elapsed_seconds:.3f}")
+finally:
+    spark.conf.set("spark.sql.adaptive.enabled", _original_aqe)
+    spark.conf.set("spark.sql.autoBroadcastJoinThreshold", _original_broadcast_threshold)
 
 # COMMAND ----------
 
