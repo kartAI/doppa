@@ -207,7 +207,7 @@ Concretely, the outer orchestrator loop is serial: it picks the next experiment 
 its peer batch in parallel, waits for the whole batch to finish, marks every member completed, and moves on. At any
 moment one batch is in flight; within that batch every member runs on its own ACI in parallel.
 
-The 52 experiments are packed into 20 batches under four constraints that the `related_script_ids` graph encodes:
+The 44 experiments are packed into 18 batches under four constraints that the `related_script_ids` graph encodes:
 
 1. **Same query type** per batch — `point-in-polygon-lookup`, `knn-search`, `bbox-filtering`, or
    `national-scale-spatial-join` never mix.
@@ -226,7 +226,7 @@ by constraint 4.
 
 ### Test matrix
 
-The matrix below is the active set of 52 experiments grouped into 20 parallel batches. Each cell lists the engines
+The matrix below is the active set of 44 experiments grouped into 18 parallel batches. Each cell lists the engines
 or Sedona configurations that launch together in the same wall-clock window; size suffixes (`-small`, `-medium`,
 `-large`) are appended to the experiment ids in `benchmarks.yml` and forwarded to each container as `--dataset-size`.
 Shapefile (`local`) only participates at the `small` tier per the thesis methodology — it represents the
