@@ -15,6 +15,15 @@
 # becomes a `RangeJoin` over a co-partitioned index instead of the default
 # `SortMergeJoin` Spark would pick for ST_Intersects.
 #
+# Two Spark configs are overridden for the timed section and restored
+# afterward:
+#   spark.sql.autoBroadcastJoinThreshold = -1
+#     Prevents Spark from auto-broadcasting the small municipalities side,
+#     which would bypass Sedona's spatial partitioner and produce a
+#     BroadcastNestedLoopJoin (brute-force cross product).
+#   spark.sql.adaptive.enabled = false
+#     Prevents AQE from rewriting Sedona's RangeJoin plan before execution.
+#
 # Notes:
 # - stage_durations_ms is capped at the first 100 stages (dbutils.notebook.exit
 #   has a payload cap around 1 MB); a warning is logged if truncation happens.
@@ -31,6 +40,7 @@
 import json
 import time
 
+from pyspark.sql import functions as F
 from sedona.spark import SedonaContext
 
 # COMMAND ----------
@@ -82,9 +92,6 @@ print(f"Cluster parallelism: {parallelism}")
 print(f"Buildings partitions before repartition: {buildings_df.rdd.getNumPartitions()}")
 
 buildings_df = buildings_df.repartition(parallelism)
-
-buildings_df.createOrReplaceTempView("buildings")
-municipalities_df.createOrReplaceTempView("municipalities")
 
 # COMMAND ----------
 
@@ -145,28 +152,33 @@ municipalities_df.createOrReplaceTempView("municipalities")
 
 # COMMAND ----------
 
+_original_aqe = spark.conf.get("spark.sql.adaptive.enabled")
+_original_broadcast_threshold = spark.conf.get("spark.sql.autoBroadcastJoinThreshold")
+spark.conf.set("spark.sql.adaptive.enabled", "false")
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "-1")
+
 start_time = time.perf_counter()
 
-result = sedona.sql("""
-    SELECT
-        m.municipality_name,
-        COUNT(b.geometry) AS building_count
-    FROM municipalities m
-    JOIN buildings b
-      ON ST_Intersects(m.geometry, b.geometry)
-    GROUP BY m.municipality_name
-    ORDER BY building_count DESC
-""")
-
+result = (
+    municipalities_df.alias("m")
+    .join(
+        buildings_df.alias("b"),
+        F.expr("ST_Intersects(m.geometry, b.geometry)"),
+    )
+    .groupBy(F.col("m.municipality_name"))
+    .agg(F.count(F.col("b.geometry")).alias("building_count"))
+    .orderBy(F.desc("building_count"))
+)
 cardinality = result.count()
 elapsed_seconds = time.perf_counter() - start_time
+
+spark.conf.set("spark.sql.adaptive.enabled", _original_aqe)
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", _original_broadcast_threshold)
 
 print(f"Spatial join complete. Regions with matched buildings: {cardinality}")
 print(f"Elapsed seconds: {elapsed_seconds:.3f}")
 
 # COMMAND ----------
-
-from pyspark.sql import functions as F
 
 _STAGE_DURATION_CAP = 100
 

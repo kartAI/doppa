@@ -271,6 +271,17 @@ def monitor(
                             ],
                         )
 
+                    if elapsed_time >= Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS:
+                        stop_reason = StopReason.TIMEOUT
+                        logger.warning(
+                            f"Single iteration of '{query_id}' took "
+                            f"{elapsed_time:.1f}s, exceeding "
+                            f"BENCHMARK_MAX_TIMED_WINDOW_SECONDS="
+                            f"{Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS}s; "
+                            f"stopping."
+                        )
+                        break
+
                     if not use_sequential_stopping:
                         if iteration >= ceiling:
                             stop_reason = StopReason.FIXED

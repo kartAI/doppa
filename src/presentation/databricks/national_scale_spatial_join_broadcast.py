@@ -30,6 +30,7 @@
 import json
 import time
 
+from pyspark.sql import functions as F
 from pyspark.sql.functions import broadcast
 from sedona.spark import SedonaContext
 
@@ -78,9 +79,6 @@ print(f"Cluster parallelism: {parallelism}")
 print(f"Buildings partitions before repartition: {buildings_df.rdd.getNumPartitions()}")
 
 buildings_df = buildings_df.repartition(parallelism)
-
-buildings_df.createOrReplaceTempView("buildings")
-municipalities_df.createOrReplaceTempView("municipalities")
 
 # COMMAND ----------
 
@@ -143,16 +141,16 @@ municipalities_df.createOrReplaceTempView("municipalities")
 
 start_time = time.perf_counter()
 
-result = sedona.sql("""
-    SELECT
-        m.municipality_name,
-        COUNT(b.geometry) AS building_count
-    FROM buildings b
-    JOIN municipalities m
-      ON ST_Intersects(m.geometry, b.geometry)
-    GROUP BY m.municipality_name
-    ORDER BY building_count DESC
-""")
+result = (
+    buildings_df.alias("b")
+    .join(
+        municipalities_df.alias("m"),
+        F.expr("ST_Intersects(m.geometry, b.geometry)"),
+    )
+    .groupBy(F.col("m.municipality_name"))
+    .agg(F.count(F.col("b.geometry")).alias("building_count"))
+    .orderBy(F.desc("building_count"))
+)
 
 cardinality = result.count()
 elapsed_seconds = time.perf_counter() - start_time
@@ -161,8 +159,6 @@ print(f"Spatial join complete. Regions with matched buildings: {cardinality}")
 print(f"Elapsed seconds: {elapsed_seconds:.3f}")
 
 # COMMAND ----------
-
-from pyspark.sql import functions as F
 
 _STAGE_DURATION_CAP = 100
 
