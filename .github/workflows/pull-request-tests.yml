@@ -208,14 +208,8 @@ jobs:
           - service: national-scale-spatial-join-databricks-default-2-nodes
             display_name: Sedona National Scale Spatial Join - Default - 2 Nodes
 
-          - service: national-scale-spatial-join-databricks-default-4-nodes
-            display_name: Sedona National Scale Spatial Join - Default - 4 Nodes
-
           - service: national-scale-spatial-join-databricks-default-8-nodes
             display_name: Sedona National Scale Spatial Join - Default - 8 Nodes
-
-          - service: national-scale-spatial-join-databricks-default-12-nodes
-            display_name: Sedona National Scale Spatial Join - Default - 12 Nodes
 
           - service: national-scale-spatial-join-databricks-default-16-nodes
             display_name: Sedona National Scale Spatial Join - Default - 16 Nodes
