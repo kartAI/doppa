@@ -12,14 +12,20 @@ class AzurePricingService(IAzurePricingService):
     Hard-coded Azure Norway East pricing (USD) as of 2026.
     All rates are per-second or per-GB unless noted.
 
-    All resources (ACI, Blob Storage, PostgreSQL) are deployed in the same
-    region (Norway East) and under the same tenant/subscription. Intra-region,
-    intra-tenant data transfers are free, so all network egress rates are $0.00.
+    ACI, Blob Storage, and PostgreSQL are deployed in Norway East under the
+    same tenant/subscription. Intra-region, intra-tenant data transfers are
+    free, so their network egress rates are $0.00.
+
+    Databricks is deployed in Sweden Central (Norway East does not offer
+    Databricks). When Databricks executors read GeoParquet from Blob Storage
+    in Norway East, the transfer is inter-region egress billed on the blob
+    storage side at the intra-Europe cross-region rate (~$0.02/GB).
+    See: https://azure.microsoft.com/pricing/details/bandwidth/
+         Section "Intra-continental data transfer" → Zone 1 ↔ Zone 1.
 
     If resources are later moved to different regions, update the egress rates
     to the applicable Azure Bandwidth tier. Norway East is in Zone 1.
     Zone 1 internet egress (Premium Global Network): $0.087/GB (first 10 TB/month).
-    See: https://azure.microsoft.com/pricing/details/bandwidth/
 
     Sources:
         ACI compute:       https://azure.microsoft.com/pricing/details/container-instances/
@@ -54,6 +60,7 @@ class AzurePricingService(IAzurePricingService):
     __BLOB_LIST_PER_10K: float = 0.065  # $0.065  per 10 000 list ops
     __BLOB_INGRESS_PER_GB: float = 0.0  # Free inbound (always free on Azure)
     __BLOB_EGRESS_PER_GB: float = 0.0  # Free — intra-region, same tenant
+    __BLOB_CROSS_REGION_EGRESS_PER_GB: float = 0.02  # Intra-Europe cross-region (Zone 1 ↔ Zone 1)
 
     # ------------------------------------------------------------------
     # Azure Databricks — Sweden Central, Standard tier, Jobs Compute
@@ -104,6 +111,7 @@ class AzurePricingService(IAzurePricingService):
             storage_gb_per_month=self.__BLOB_STORAGE_GB_PER_MONTH,
             ingress_per_gb=self.__BLOB_INGRESS_PER_GB,
             egress_per_gb=self.__BLOB_EGRESS_PER_GB,
+            cross_region_egress_per_gb=self.__BLOB_CROSS_REGION_EGRESS_PER_GB,
         )
 
     def get_databricks_pricing(self) -> DatabricksPricing:

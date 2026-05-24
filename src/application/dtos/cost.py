@@ -24,3 +24,4 @@ class CostConfiguration:
     include_postgres: bool = False
     include_databricks: bool = False
     num_workers: int = 0
+    is_cross_region_blob: bool = False

@@ -62,7 +62,11 @@ def _build_benchmark_fn(
         query_id=query_id,
         benchmark_iteration=BenchmarkIteration.NATIONAL_SCALE_SPATIAL_JOIN,
         cost_configuration=CostConfiguration(
-            include_aci=True, include_databricks=True, num_workers=num_workers
+            include_aci=True,
+            include_databricks=True,
+            include_blob_storage=True,
+            num_workers=num_workers,
+            is_cross_region_blob=True,
         ),
         skip_warmup=False,
         elapsed_from_result=True,

@@ -2,7 +2,7 @@
 
 from src.application.contracts import IAzureCostService, IAzureMetricService, IAzurePricingService
 from src.application.dtos import Cost
-from src.domain.enums import BlobOperationType
+from src.domain.enums import BlobOperationType, DatasetSize
 
 
 class AzureCostService(IAzureCostService):
@@ -52,6 +52,8 @@ class AzureCostService(IAzureCostService):
             bytes_ingress: float,
             bytes_egress: float,
             operation_type: BlobOperationType,
+            dataset_size: DatasetSize = DatasetSize.SMALL,
+            is_cross_region: bool = False,
     ) -> Cost:
         usage = self.__azure_metric_service.get_blob_storage_usage(
             start_time=start_time,
@@ -59,6 +61,7 @@ class AzureCostService(IAzureCostService):
             bytes_ingress=bytes_ingress,
             bytes_egress=bytes_egress,
             operation_type=operation_type,
+            dataset_size=dataset_size,
         )
         pricing = self.__azure_pricing_service.get_blob_storage_pricing()
 
@@ -73,11 +76,15 @@ class AzureCostService(IAzureCostService):
                 + usage.list_transactions * pricing.list_operation_cost
         )
 
+        egress_rate = (
+            pricing.cross_region_egress_per_gb if is_cross_region
+            else pricing.egress_per_gb
+        )
         ingress_gb = usage.bytes_ingress / (1024 ** 3)
         egress_gb = usage.bytes_egress / (1024 ** 3)
         network_cost = (
                 ingress_gb * pricing.ingress_per_gb
-                + egress_gb * pricing.egress_per_gb
+                + egress_gb * egress_rate
         )
 
         total = storage_cost + operations_cost + network_cost
@@ -106,8 +113,9 @@ class AzureCostService(IAzureCostService):
         pricing = self.__azure_pricing_service.get_databricks_pricing()
 
         duration_hours = usage.duration_seconds / 3600
-        dbu_cost = usage.num_workers * pricing.dbu_per_node_per_hour * pricing.dbu_price_per_hour * duration_hours
-        vm_cost = usage.num_workers * pricing.vm_cost_per_node_per_hour * duration_hours
+        total_nodes = usage.num_workers + 1  # workers + driver (same VM type)
+        dbu_cost = total_nodes * pricing.dbu_per_node_per_hour * pricing.dbu_price_per_hour * duration_hours
+        vm_cost = total_nodes * pricing.vm_cost_per_node_per_hour * duration_hours
         compute_cost = dbu_cost + vm_cost
 
         egress_gb = usage.bytes_egress / (1024 ** 3)
