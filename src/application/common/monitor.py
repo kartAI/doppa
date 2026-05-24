@@ -85,6 +85,8 @@ def monitor(
                 else Config.BENCHMARK_WARMUP_ITERATIONS
             )
 
+            stop_reason: StopReason | None = None
+
             if skip_warmup:
                 logger.info(
                     f"Executing benchmark for '{query_id}' with no warmup (ceiling={ceiling})."
@@ -122,7 +124,16 @@ def monitor(
                             f"Skipping timed iterations."
                         )
                         break
-                if failure is None:
+                    if w_elapsed >= Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS:
+                        stop_reason = StopReason.TIMEOUT
+                        logger.warning(
+                            f"Warmup iteration for '{query_id}' took "
+                            f"{w_elapsed:.1f}s, exceeding "
+                            f"BENCHMARK_MAX_TIMED_WINDOW_SECONDS="
+                            f"{Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS}s; stopping."
+                        )
+                        break
+                if failure is None and stop_reason is None:
                     if use_sequential_stopping:
                         logger.info(
                             f"Warmup complete for '{query_id}'. Starting sequential timed iterations "
@@ -140,11 +151,10 @@ def monitor(
             failed_iterations: int = 0
             consecutive_failures: int = 0
             bootstrap_rng = _make_bootstrap_rng(run_id=run_id, query_id=query_id)
-            stop_reason: StopReason | None = None
             soft_ceiling_warned = False
             timed_loop_start = datetime.datetime.now(datetime.UTC)
 
-            if failure is None:
+            if failure is None and stop_reason is None:
                 iteration = 0
                 while True:
                     iteration += 1

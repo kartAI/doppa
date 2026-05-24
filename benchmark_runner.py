@@ -25,9 +25,6 @@ from src.presentation.entrypoints import (
     national_scale_spatial_join_databricks_partitioned_8_nodes,
     national_scale_spatial_join_databricks_partitioned_12_nodes,
     national_scale_spatial_join_databricks_partitioned_16_nodes,
-    national_scale_spatial_join_databricks_default_2_nodes,
-    national_scale_spatial_join_databricks_default_8_nodes,
-    national_scale_spatial_join_databricks_default_16_nodes,
 )
 
 
@@ -107,15 +104,6 @@ def benchmark_runner() -> None:
             return
         case "national-scale-spatial-join-databricks-partitioned-16-nodes":
             national_scale_spatial_join_databricks_partitioned_16_nodes()
-            return
-        case "national-scale-spatial-join-databricks-default-2-nodes":
-            national_scale_spatial_join_databricks_default_2_nodes()
-            return
-        case "national-scale-spatial-join-databricks-default-8-nodes":
-            national_scale_spatial_join_databricks_default_8_nodes()
-            return
-        case "national-scale-spatial-join-databricks-default-16-nodes":
-            national_scale_spatial_join_databricks_default_16_nodes()
             return
         case "setup-framework":
             setup_benchmarking_framework()
