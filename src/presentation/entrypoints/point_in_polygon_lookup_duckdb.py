@@ -1,5 +1,3 @@
-import random
-
 from dependency_injector.wiring import Provide, inject
 from duckdb import DuckDBPyConnection
 
@@ -7,7 +5,7 @@ from src import Config
 from src.application.common.monitor import monitor
 from src.application.contracts import IFilePathService
 from src.application.dtos import CostConfiguration
-from src.domain.enums import StorageContainer, Theme, BenchmarkIteration, BoundingBox, DatasetSize
+from src.domain.enums import StorageContainer, Theme, BenchmarkIteration, DatasetSize
 from src.infra.infrastructure import Containers
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
@@ -18,74 +16,13 @@ def point_in_polygon_lookup_duckdb(
     path_service: IFilePathService = Provide[Containers.file_path_service],
 ) -> None:
     """
-    Benchmark: point-in-polygon lookups against the buildings dataset using DuckDB's
-    spatial extension over Azure Blob Storage. The dataset size is pulled from DI and
-    parameterises the parquet path. Generates a mix of probe points guaranteed to
-    fall inside buildings and uniformly random points within the Trondheim bounding
-    box (which may or may not land on a building) up front, then times per-point
-    ``ST_Contains`` counts.
+    Benchmark: point-in-polygon lookup against the buildings dataset using DuckDB's
+    spatial extension over Azure Blob Storage. Tests a single fixed query point
+    against all building polygons and returns the containing polygon(s).
     """
     dataset_size = _get_dataset_size()
-    points = _generate_points(
-        db_context=db_context, path_service=path_service, dataset_size=dataset_size
-    )
     benchmark_fn = _build_benchmark_fn(dataset_size=dataset_size)
-    benchmark_fn(points=points, db_context=db_context, path_service=path_service)
-
-
-def _generate_points(
-    db_context: DuckDBPyConnection,
-    path_service: IFilePathService,
-    dataset_size: DatasetSize,
-) -> list[tuple[float, float]]:
-    min_lon, min_lat, max_lon, max_lat = BoundingBox.TRONDHEIM_WGS84.value
-    n_inside = int(Config.POINT_IN_POLYGON_TOTAL_POINTS * Config.POINT_IN_POLYGON_INSIDE_RATIO)
-    n_random = Config.POINT_IN_POLYGON_TOTAL_POINTS - n_inside
-
-    path = path_service.create_release_virtual_filesystem_path(
-        storage_scheme="az",
-        release=Config.BENCHMARK_DOPPA_DATA_RELEASE,
-        container=StorageContainer.DATA,
-        theme=Theme.BUILDINGS,
-        dataset_size=dataset_size,
-        region="*",
-        file_name="*.parquet",
-    )
-
-    # TODO: See if this query can be improved in terms of efficiency
-    rows = db_context.execute(
-        f"""
-        WITH buildings_with_point_on_surface AS (
-            SELECT *, ST_PointOnSurface(geometry) AS point_on_surface FROM read_parquet('{path}')
-        ),
-
-        buildings AS(
-            SELECT
-                ST_X(bpof.point_on_surface) AS lon,
-                ST_Y(bpof.point_on_surface) AS lat
-            FROM buildings_with_point_on_surface bpof
-            WHERE ST_Intersects(geometry, ST_MakeEnvelope(?, ?, ?, ?)) AND ST_IsValid(geometry)
-            ORDER BY lon, lat
-            LIMIT ?
-        )
-
-        SELECT * FROM buildings;
-        """,
-        [min_lon, min_lat, max_lon, max_lat, n_inside],
-    ).fetchall()
-
-    inside_points = [(row[0], row[1]) for row in rows]
-
-    # TODO: Explore comments from https://github.com/kartAI/doppa/pull/196
-    rng = random.Random(Config.POINT_IN_POLYGON_PROBE_SEED)
-    random_bbox_points = [
-        (rng.uniform(min_lon, max_lon), rng.uniform(min_lat, max_lat))
-        for _ in range(n_random)
-    ]
-
-    combined = inside_points + random_bbox_points
-    rng.shuffle(combined)
-    return combined
+    benchmark_fn(db_context=db_context, path_service=path_service)
 
 
 def _build_benchmark_fn(dataset_size: DatasetSize):
@@ -97,7 +34,6 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
         cost_configuration=CostConfiguration(include_aci=True, include_blob_storage=True),
     )
     def _benchmark(
-        points: list[tuple[float, float]],
         db_context: DuckDBPyConnection,
         path_service: IFilePathService,
     ) -> list:
@@ -111,17 +47,13 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
             file_name="*.parquet",
         )
 
-        rows: list = []
-        for lon, lat in points:
-            rows.extend(
-                db_context.execute(
-                    f"""
-                    SELECT COUNT(*) FROM read_parquet('{path}')
-                    WHERE ST_Contains(geometry, ST_Point(?, ?))
-                    """,
-                    [lon, lat],
-                ).fetchall()
-            )
-        return rows
+        lon, lat = Config.POINT_IN_POLYGON_PROBE_WGS84
+        return db_context.execute(
+            f"""
+            SELECT * FROM read_parquet('{path}')
+            WHERE ST_Contains(geometry, ST_Point(?, ?))
+            """,
+            [lon, lat],
+        ).fetchall()
 
     return _benchmark
