@@ -2,7 +2,7 @@ import datetime
 from abc import abstractmethod, ABC
 
 from src.application.dtos import Cost
-from src.domain.enums import BlobOperationType
+from src.domain.enums import BlobOperationType, DatasetSize
 
 
 class IAzureCostService(ABC):
@@ -35,6 +35,8 @@ class IAzureCostService(ABC):
             bytes_ingress: float,
             bytes_egress: float,
             operation_type: BlobOperationType,
+            dataset_size: DatasetSize = DatasetSize.SMALL,
+            is_cross_region: bool = False,
     ) -> Cost:
         """
         Computes the blob storage cost for the benchmark window. The cost includes prorated storage
@@ -45,6 +47,8 @@ class IAzureCostService(ABC):
         :param bytes_ingress: Bytes uploaded to blob storage during the benchmark.
         :param bytes_egress: Bytes downloaded from blob storage during the benchmark.
         :param operation_type: Whether the benchmark performs READ or WRITE operations against blob storage.
+        :param dataset_size: Dataset size tier used to count blobs for operation cost estimation.
+        :param is_cross_region: When True, uses cross-region egress pricing instead of intra-region.
         :return: Cost DTO with compute, storage, network, operations, and total cost. Compute cost is 0
             for blob storage.
         :rtype: Cost
