@@ -47,7 +47,8 @@ def monitor(
         bounded below by ``Config.BENCHMARK_MIN_ITERATIONS`` and
         ``Config.BENCHMARK_MIN_TIMED_WINDOW_SECONDS``, and above by ``benchmark_iteration``
         (soft ceiling: kept open until the 60-second floor is met to keep the cost-metric
-        window valid) and ``Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS`` (hard timeout).
+        window valid), ``Config.BENCHMARK_MAX_ITERATION_SECONDS`` (per-iteration hard timeout),
+        and ``Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS`` (cumulative hard timeout).
         Set to False for Databricks national-scale runs, which use a fixed iteration count.
         Default is True.
     :param warmup_iterations: Override the number of warmup iterations. ``None`` falls back
@@ -124,13 +125,13 @@ def monitor(
                             f"Skipping timed iterations."
                         )
                         break
-                    if w_elapsed >= Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS:
+                    if w_elapsed >= Config.BENCHMARK_MAX_ITERATION_SECONDS:
                         stop_reason = StopReason.TIMEOUT
                         logger.warning(
                             f"Warmup iteration for '{query_id}' took "
                             f"{w_elapsed:.1f}s, exceeding "
-                            f"BENCHMARK_MAX_TIMED_WINDOW_SECONDS="
-                            f"{Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS}s; stopping."
+                            f"BENCHMARK_MAX_ITERATION_SECONDS="
+                            f"{Config.BENCHMARK_MAX_ITERATION_SECONDS}s; stopping."
                         )
                         break
                 if failure is None and stop_reason is None:
@@ -281,13 +282,13 @@ def monitor(
                             ],
                         )
 
-                        if elapsed_time >= Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS:
+                        if elapsed_time >= Config.BENCHMARK_MAX_ITERATION_SECONDS:
                             stop_reason = StopReason.TIMEOUT
                             logger.warning(
                                 f"Single iteration of '{query_id}' took "
                                 f"{elapsed_time:.1f}s, exceeding "
-                                f"BENCHMARK_MAX_TIMED_WINDOW_SECONDS="
-                                f"{Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS}s; "
+                                f"BENCHMARK_MAX_ITERATION_SECONDS="
+                                f"{Config.BENCHMARK_MAX_ITERATION_SECONDS}s; "
                                 f"stopping."
                             )
                             break
