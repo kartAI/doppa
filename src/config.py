@@ -113,12 +113,12 @@ class Config:
     BENCHMARK_WARMUP_ITERATIONS: int = 5
     BENCHMARK_ITERATIONS: int = 100
     BENCHMARK_METADATA_BLOB_NAME: str = "benchmark_metadata.parquet"
-    BENCHMARK_DOPPA_DATA_RELEASE: str = "2026-05-16.1"
+    BENCHMARK_DOPPA_DATA_RELEASE: str = "2026-05-23.1"
 
     # Sequential stopping rule (bootstrapped CI on mean elapsed time)
     BENCHMARK_MIN_ITERATIONS: int = 10
     BENCHMARK_MIN_TIMED_WINDOW_SECONDS: int = 60
-    BENCHMARK_MAX_TIMED_WINDOW_SECONDS: int = 3600
+    BENCHMARK_MAX_TIMED_WINDOW_SECONDS: int = 5400
     BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE: float = 0.05
     BENCHMARK_BOOTSTRAP_RESAMPLES: int = 1000
     BENCHMARK_CI_CONFIDENCE: float = 0.95
@@ -137,8 +137,8 @@ class Config:
     )
     DATABRICKS_POLL_INTERVAL_SECONDS: int = 30
     DATABRICKS_HTTP_TIMEOUT_SECONDS: int = 30
-    DATABRICKS_DRIVER_MEMORY: str = "9g"
-    DATABRICKS_DRIVER_MEMORY_OVERHEAD: str = "512m"
+    DATABRICKS_DRIVER_MEMORY: str = "14g"
+    DATABRICKS_DRIVER_MEMORY_OVERHEAD: str = "1g"
     DATABRICKS_DRIVER_MAX_RESULT_SIZE: str = "8g"
     DATABRICKS_SEDONA_MAVEN_COORDINATES: str = (
         "org.apache.sedona:sedona-spark-shaded-3.5_2.12:1.7.1"
@@ -151,17 +151,11 @@ class Config:
     DATABRICKS_LOCAL_SCRIPT_PATH_PARTITIONED: str = (
         "src/presentation/databricks/national_scale_spatial_join_partitioned.py"
     )
-    DATABRICKS_LOCAL_SCRIPT_PATH_DEFAULT: str = (
-        "src/presentation/databricks/national_scale_spatial_join_default.py"
-    )
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH_BROADCAST: str = (
         "/Shared/doppa/national_scale_spatial_join_broadcast"
     )
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH_PARTITIONED: str = (
         "/Shared/doppa/national_scale_spatial_join_partitioned"
-    )
-    DATABRICKS_WORKSPACE_NOTEBOOK_PATH_DEFAULT: str = (
-        "/Shared/doppa/national_scale_spatial_join_default"
     )
     DATABRICKS_MUNICIPALITIES_FILE: str = "municipalities.parquet"
     MUNICIPALITIES_CONTRIBUTION_BLOB: str = "municipalities.parquet"

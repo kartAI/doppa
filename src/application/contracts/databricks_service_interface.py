@@ -10,7 +10,7 @@ class IDatabricksService(ABC):
     def create_cluster(
         self,
         num_workers: int,
-        notebook_variant: Literal["broadcast", "partitioned", "default"],
+        notebook_variant: Literal["broadcast", "partitioned"],
     ) -> str:
         """
         Provision an interactive cluster, install required libraries, wait for the cluster to
@@ -20,9 +20,7 @@ class IDatabricksService(ABC):
         :param num_workers: Number of worker nodes to provision for the cluster.
         :param notebook_variant: Which Sedona join strategy notebook to upload. ``"broadcast"``
             uploads the variant that wraps ``broadcast()`` on the right side of the join;
-            ``"partitioned"`` uploads the variant that sets the Sedona spatial partitioner;
-            ``"default"`` uploads the variant that applies no strategy hint and lets Spark's
-            cost-based optimizer pick the plan.
+            ``"partitioned"`` uploads the variant that sets the Sedona spatial partitioner.
         :return: The Databricks cluster ID, suitable for passing to
             :meth:`submit_to_existing_cluster` and :meth:`terminate_cluster`.
         :rtype: str
@@ -38,7 +36,7 @@ class IDatabricksService(ABC):
         cluster_id: str,
         num_workers: int,
         dataset_size: DatasetSize,
-        notebook_variant: Literal["broadcast", "partitioned", "default"],
+        notebook_variant: Literal["broadcast", "partitioned"],
     ) -> DatabricksRunResult:
         """
         Submit a single notebook run against an already-running cluster and block until it

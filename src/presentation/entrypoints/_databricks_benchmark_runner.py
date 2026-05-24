@@ -7,7 +7,7 @@ from src.domain.enums import BenchmarkIteration, DatasetSize
 from src.presentation.entrypoints._factory import _build_query_id, _get_dataset_size
 
 
-NotebookVariant = Literal["broadcast", "partitioned", "default"]
+NotebookVariant = Literal["broadcast", "partitioned"]
 
 
 def run_databricks_national_scale_spatial_join(

@@ -145,17 +145,6 @@ jobs:
             image: national-scale-spatial-join-databricks-partitioned-16-nodes
             display_name: Sedona National Scale Spatial Join - Partitioned - 16 Nodes
 
-          - service: national-scale-spatial-join-databricks-default-2-nodes
-            image: national-scale-spatial-join-databricks-default-2-nodes
-            display_name: Sedona National Scale Spatial Join - Default - 2 Nodes
-
-          - service: national-scale-spatial-join-databricks-default-8-nodes
-            image: national-scale-spatial-join-databricks-default-8-nodes
-            display_name: Sedona National Scale Spatial Join - Default - 8 Nodes
-
-          - service: national-scale-spatial-join-databricks-default-16-nodes
-            image: national-scale-spatial-join-databricks-default-16-nodes
-            display_name: Sedona National Scale Spatial Join - Default - 16 Nodes
 
     steps:
       - name: Checkout code

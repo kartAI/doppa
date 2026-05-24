@@ -53,10 +53,6 @@ def initialize_dependencies(
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_8_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_12_nodes",
             "src.presentation.entrypoints.national_scale_spatial_join_databricks_partitioned_16_nodes",
-            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_2_nodes",
-            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_8_nodes",
-            "src.presentation.entrypoints.national_scale_spatial_join_databricks_default_16_nodes",
-
             "src.presentation.entrypoints.setup_benchmarking_framework",
 
             "src.presentation.endpoints.tile_server"
