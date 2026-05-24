@@ -1,3 +1,5 @@
+import warnings
+
 import geopandas as gpd
 from shapely.geometry import Point
 
@@ -46,7 +48,13 @@ def _build_benchmark_fn(dataset_size: DatasetSize):
         gdf = gpd.read_file(Config.BUILDINGS_SHAPEFILE)
         gdf = gdf.set_crs(epsg=4326, allow_override=True)
 
-        distances = gdf.geometry.distance(reference)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message="Geometry is in a geographic CRS",
+                category=UserWarning,
+            )
+            distances = gdf.geometry.distance(reference)
         nearest_idx = distances.nsmallest(Config.KNN_SEARCH_K).index
         return gdf.loc[nearest_idx]
 
