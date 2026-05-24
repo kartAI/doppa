@@ -49,7 +49,8 @@ def monitor(
         (soft ceiling: kept open until the 60-second floor is met to keep the cost-metric
         window valid), ``Config.BENCHMARK_MAX_ITERATION_SECONDS`` (per-iteration hard timeout),
         and ``Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS`` (cumulative hard timeout).
-        Set to False for Databricks national-scale runs, which use a fixed iteration count.
+        Set to False for Databricks national-scale runs, which use a fixed iteration count
+        with a cumulative wall-clock ceiling of ``Config.BENCHMARK_MAX_FIXED_WINDOW_SECONDS``.
         Default is True.
     :param warmup_iterations: Override the number of warmup iterations. ``None`` falls back
         to ``Config.BENCHMARK_WARMUP_ITERATIONS``. Long-running benchmarks (national-scale
@@ -294,6 +295,18 @@ def monitor(
                             break
 
                     if not use_sequential_stopping:
+                        window_seconds = (
+                            datetime.datetime.now(datetime.UTC) - timed_loop_start
+                        ).total_seconds()
+                        if window_seconds >= Config.BENCHMARK_MAX_FIXED_WINDOW_SECONDS:
+                            stop_reason = StopReason.TIMEOUT
+                            logger.warning(
+                                f"Fixed-iteration window for '{query_id}' reached "
+                                f"BENCHMARK_MAX_FIXED_WINDOW_SECONDS="
+                                f"{Config.BENCHMARK_MAX_FIXED_WINDOW_SECONDS}s after "
+                                f"{iteration} iterations; stopping."
+                            )
+                            break
                         if iteration >= ceiling:
                             stop_reason = StopReason.FIXED
                             break

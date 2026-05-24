@@ -125,6 +125,9 @@ class Config:
     BENCHMARK_CI_CONFIDENCE: float = 0.95
     BENCHMARK_MAX_CONSECUTIVE_FAILURES: int = 3
 
+    # Fixed-iteration cumulative wall-clock ceiling (75 min)
+    BENCHMARK_MAX_FIXED_WINDOW_SECONDS: int = 75 * 60
+
     INGESTION_DELAY_SECONDS: int = 600
 
     # DATABRICKS
