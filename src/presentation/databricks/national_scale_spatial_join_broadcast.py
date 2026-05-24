@@ -14,6 +14,10 @@
 # `broadcast()` so Sedona picks `BroadcastIndexJoin` instead of the default
 # `SortMergeJoin` Spark would pick for ST_Intersects.
 #
+# AQE (Adaptive Query Execution) is disabled before the timed section to
+# prevent it from rewriting Sedona's BroadcastIndexJoin plan back into
+# Spark's native BroadcastNestedLoopJoin (a brute-force cross product).
+#
 # Notes:
 # - stage_durations_ms is capped at the first 100 stages (dbutils.notebook.exit
 #   has a payload cap around 1 MB); a warning is logged if truncation happens.
@@ -139,6 +143,9 @@ buildings_df = buildings_df.repartition(parallelism)
 
 # COMMAND ----------
 
+_original_aqe = spark.conf.get("spark.sql.adaptive.enabled")
+spark.conf.set("spark.sql.adaptive.enabled", "false")
+
 start_time = time.perf_counter()
 
 result = (
@@ -154,6 +161,8 @@ result = (
 
 cardinality = result.count()
 elapsed_seconds = time.perf_counter() - start_time
+
+spark.conf.set("spark.sql.adaptive.enabled", _original_aqe)
 
 print(f"Spatial join complete. Regions with matched buildings: {cardinality}")
 print(f"Elapsed seconds: {elapsed_seconds:.3f}")
