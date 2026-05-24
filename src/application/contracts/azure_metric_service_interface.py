@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from azure.monitor.querymetrics import MetricAggregationType, MetricsQueryResult
 
 from src.application.dtos import AciUsage, BlobStorageUsage, DatabaseUsage, DatabricksUsage
-from src.domain.enums import AzureMetricNamespace, AzureResourceMetrics, BlobOperationType
+from src.domain.enums import AzureMetricNamespace, AzureResourceMetrics, BlobOperationType, DatasetSize
 
 
 class IAzureMetricService(ABC):
@@ -66,7 +66,8 @@ class IAzureMetricService(ABC):
             end_time: datetime.datetime,
             bytes_ingress: float,
             bytes_egress: float,
-            operation_type: BlobOperationType
+            operation_type: BlobOperationType,
+            dataset_size: DatasetSize = DatasetSize.SMALL,
     ) -> BlobStorageUsage:
         """
         Returns the blob storage usage for the benchmark window. The transaction counts are derived from
@@ -78,6 +79,7 @@ class IAzureMetricService(ABC):
         :param bytes_ingress: Bytes uploaded to blob storage during the benchmark.
         :param bytes_egress: Bytes downloaded from blob storage during the benchmark.
         :param operation_type: Whether the benchmark performs READ or WRITE operations against blob storage.
+        :param dataset_size: Dataset size tier used to resolve the blob path for counting blobs.
         :return: BlobStorageUsage DTO with transaction counts, network bytes, and storage size in bytes.
         :rtype: BlobStorageUsage
         """
