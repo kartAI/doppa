@@ -462,10 +462,10 @@ def _check_container_state(
                     f"Container '{container_group_name}' completed in {_format_duration(elapsed)}."
                 )
                 break
-            case "Failed":
+            case "Failed" | "Stopped" | "Terminated":
                 time.sleep(5)
                 _stream_container_logs(container_group_name, lines_seen)
-                error_message = f"Container '{container_group_name}' failed. Please check the logs for more information."
+                error_message = f"Container '{container_group_name}' {state.lower()}. Please check the logs for more information."
                 logger.error(error_message)
                 raise RuntimeError(error_message)
             case _:
