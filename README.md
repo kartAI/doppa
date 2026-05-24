@@ -190,7 +190,7 @@ Cluster provisioning and termination are deliberately outside the cost window. T
 running queries on an optimally warm engine, not the cost of cold-starting one per query. Provisioning is a one-time
 setup cost in any production deployment, amortized over many queries rather than billed per query.
 
-Three notebook variants live under `src/presentation/databricks/`:
+Two notebook variants live under `src/presentation/databricks/`:
 `national_scale_spatial_join_broadcast.py` (wraps `broadcast()` around the small side) and
 `national_scale_spatial_join_partitioned.py` (sets the Sedona KDB-tree partitioner).
 Each registers a `SparkListener` that aggregates per-stage metrics — executor input bytes,

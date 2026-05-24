@@ -20,7 +20,7 @@ from src.domain.enums import (
 from src.domain.exceptions import QuotaExhaustedError
 
 
-NotebookVariant = Literal["broadcast", "partitioned", "default"]
+NotebookVariant = Literal["broadcast", "partitioned"]
 
 
 def _local_script_path(notebook_variant: NotebookVariant) -> str:
@@ -28,8 +28,6 @@ def _local_script_path(notebook_variant: NotebookVariant) -> str:
         return Config.DATABRICKS_LOCAL_SCRIPT_PATH_BROADCAST
     if notebook_variant == "partitioned":
         return Config.DATABRICKS_LOCAL_SCRIPT_PATH_PARTITIONED
-    if notebook_variant == "default":
-        return Config.DATABRICKS_LOCAL_SCRIPT_PATH_DEFAULT
     raise ValueError(f"Unknown notebook_variant: {notebook_variant!r}")
 
 
@@ -38,8 +36,6 @@ def _workspace_notebook_path(notebook_variant: NotebookVariant) -> str:
         return Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH_BROADCAST
     if notebook_variant == "partitioned":
         return Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH_PARTITIONED
-    if notebook_variant == "default":
-        return Config.DATABRICKS_WORKSPACE_NOTEBOOK_PATH_DEFAULT
     raise ValueError(f"Unknown notebook_variant: {notebook_variant!r}")
 
 

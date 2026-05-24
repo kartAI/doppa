@@ -137,9 +137,9 @@ class Config:
     )
     DATABRICKS_POLL_INTERVAL_SECONDS: int = 30
     DATABRICKS_HTTP_TIMEOUT_SECONDS: int = 30
-    DATABRICKS_DRIVER_MEMORY: str = "9g"
-    DATABRICKS_DRIVER_MEMORY_OVERHEAD: str = "512m"
-    DATABRICKS_DRIVER_MAX_RESULT_SIZE: str = "16g"
+    DATABRICKS_DRIVER_MEMORY: str = "14g"
+    DATABRICKS_DRIVER_MEMORY_OVERHEAD: str = "1g"
+    DATABRICKS_DRIVER_MAX_RESULT_SIZE: str = "8g"
     DATABRICKS_SEDONA_MAVEN_COORDINATES: str = (
         "org.apache.sedona:sedona-spark-shaded-3.5_2.12:1.7.1"
     )
@@ -151,17 +151,11 @@ class Config:
     DATABRICKS_LOCAL_SCRIPT_PATH_PARTITIONED: str = (
         "src/presentation/databricks/national_scale_spatial_join_partitioned.py"
     )
-    DATABRICKS_LOCAL_SCRIPT_PATH_DEFAULT: str = (
-        "src/presentation/databricks/national_scale_spatial_join_default.py"
-    )
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH_BROADCAST: str = (
         "/Shared/doppa/national_scale_spatial_join_broadcast"
     )
     DATABRICKS_WORKSPACE_NOTEBOOK_PATH_PARTITIONED: str = (
         "/Shared/doppa/national_scale_spatial_join_partitioned"
-    )
-    DATABRICKS_WORKSPACE_NOTEBOOK_PATH_DEFAULT: str = (
-        "/Shared/doppa/national_scale_spatial_join_default"
     )
     DATABRICKS_MUNICIPALITIES_FILE: str = "municipalities.parquet"
     MUNICIPALITIES_CONTRIBUTION_BLOB: str = "municipalities.parquet"
