@@ -129,17 +129,9 @@ jobs:
             image: national-scale-spatial-join-databricks-partitioned-8-nodes
             display_name: Sedona National Scale Spatial Join - Partitioned - 8 Nodes
 
-          - service: national-scale-spatial-join-databricks-broadcast-12-nodes
-            image: national-scale-spatial-join-databricks-broadcast-12-nodes
-            display_name: Sedona National Scale Spatial Join - Broadcast - 12 Nodes
-
           - service: national-scale-spatial-join-databricks-broadcast-16-nodes
             image: national-scale-spatial-join-databricks-broadcast-16-nodes
             display_name: Sedona National Scale Spatial Join - Broadcast - 16 Nodes
-
-          - service: national-scale-spatial-join-databricks-partitioned-12-nodes
-            image: national-scale-spatial-join-databricks-partitioned-12-nodes
-            display_name: Sedona National Scale Spatial Join - Partitioned - 12 Nodes
 
           - service: national-scale-spatial-join-databricks-partitioned-16-nodes
             image: national-scale-spatial-join-databricks-partitioned-16-nodes

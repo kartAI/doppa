@@ -18,12 +18,10 @@ from src.presentation.entrypoints import (
     national_scale_spatial_join_databricks_broadcast_2_nodes,
     national_scale_spatial_join_databricks_broadcast_4_nodes,
     national_scale_spatial_join_databricks_broadcast_8_nodes,
-    national_scale_spatial_join_databricks_broadcast_12_nodes,
     national_scale_spatial_join_databricks_broadcast_16_nodes,
     national_scale_spatial_join_databricks_partitioned_2_nodes,
     national_scale_spatial_join_databricks_partitioned_4_nodes,
     national_scale_spatial_join_databricks_partitioned_8_nodes,
-    national_scale_spatial_join_databricks_partitioned_12_nodes,
     national_scale_spatial_join_databricks_partitioned_16_nodes,
 )
 
@@ -84,9 +82,6 @@ def benchmark_runner() -> None:
         case "national-scale-spatial-join-databricks-broadcast-8-nodes":
             national_scale_spatial_join_databricks_broadcast_8_nodes()
             return
-        case "national-scale-spatial-join-databricks-broadcast-12-nodes":
-            national_scale_spatial_join_databricks_broadcast_12_nodes()
-            return
         case "national-scale-spatial-join-databricks-broadcast-16-nodes":
             national_scale_spatial_join_databricks_broadcast_16_nodes()
             return
@@ -98,9 +93,6 @@ def benchmark_runner() -> None:
             return
         case "national-scale-spatial-join-databricks-partitioned-8-nodes":
             national_scale_spatial_join_databricks_partitioned_8_nodes()
-            return
-        case "national-scale-spatial-join-databricks-partitioned-12-nodes":
-            national_scale_spatial_join_databricks_partitioned_12_nodes()
             return
         case "national-scale-spatial-join-databricks-partitioned-16-nodes":
             national_scale_spatial_join_databricks_partitioned_16_nodes()
