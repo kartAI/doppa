@@ -110,13 +110,14 @@ class AzureMetricService(IAzureMetricService):
             bytes_ingress: float,
             bytes_egress: float,
             operation_type: BlobOperationType,
+            dataset_size: DatasetSize = DatasetSize.SMALL,
     ) -> BlobStorageUsage:
         path = self.__file_path_service.create_dataset_blob_path(
             release=Config.BENCHMARK_DOPPA_DATA_RELEASE,
             theme=Theme.BUILDINGS,
             region="*",
             file_name="*.parquet",
-            dataset_size=DatasetSize.SMALL,
+            dataset_size=dataset_size,
         )
 
         blob_count, storage_size = self.__blob_storage_service.get_blob_summary(

@@ -15,7 +15,7 @@ from src import Config
 from src.application.common import logger
 from src.application.contracts import IMonitoringStorageService, IAzureCostService
 from src.application.dtos import CostConfiguration
-from src.domain.enums import BlobOperationType, StopReason
+from src.domain.enums import BlobOperationType, DatasetSize, StopReason
 from src.infra.infrastructure import Containers
 
 
@@ -118,7 +118,9 @@ def _save_run_cost_analytics(
     monitoring_storage_service: IMonitoringStorageService = Provide[
         Containers.monitoring_storage_service
     ],
+    dataset_size_value: str = Provide[Containers.config.dataset_size],
 ) -> None:
+    dataset_size = DatasetSize(dataset_size_value)
     benchmark_run = _get_benchmark_run()
     if cost_configuration.include_aci:
         aci_cost = azure_cost_service.compute_aci_cost(query_id, start_time, end_time)
@@ -138,7 +140,9 @@ def _save_run_cost_analytics(
     )
     if cost_configuration.include_blob_storage and is_blob_params_present:
         blob_cost = azure_cost_service.compute_blob_storage_cost(
-            start_time, end_time, bytes_ingress, bytes_egress, operation_type
+            start_time, end_time, bytes_ingress, bytes_egress, operation_type,
+            dataset_size=dataset_size,
+            is_cross_region=cost_configuration.is_cross_region_blob,
         )
         logger.debug("Computed Blob Storage cost: %s", blob_cost.to_dict())
         monitoring_storage_service.write_cost_analytics_to_blob_storage(
