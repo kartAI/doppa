@@ -170,7 +170,8 @@ try:
         .agg(F.count(F.col("b.geometry")).alias("building_count"))
         .orderBy(F.desc("building_count"))
     )
-    cardinality = result.count()
+    collected = result.collect()
+    cardinality = len(collected)
     elapsed_seconds = time.perf_counter() - start_time
 
     print(f"Spatial join complete. Regions with matched buildings: {cardinality}")

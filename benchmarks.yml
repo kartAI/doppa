@@ -203,6 +203,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    skip: true  # OOM on Azure PostgreSQL Flex Server at large scale
     related_script_ids:
       - national-scale-spatial-join-duckdb-large
 
@@ -292,6 +293,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at medium scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
 
@@ -300,6 +302,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-4-nodes-large
       - national-scale-spatial-join-databricks-partitioned-16-nodes-large
@@ -317,6 +320,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at medium scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-4-nodes-medium
 
@@ -325,6 +329,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-large
       - national-scale-spatial-join-databricks-partitioned-16-nodes-large
@@ -344,6 +349,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at medium scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
       - national-scale-spatial-join-duckdb-medium
@@ -354,6 +360,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-large
 
@@ -362,6 +369,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-large
       - national-scale-spatial-join-databricks-partitioned-4-nodes-large

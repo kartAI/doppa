@@ -1,6 +1,12 @@
 import argparse
 from typing import Optional
-from src.domain.enums import DatasetSize
+
+import yaml
+
+from src import Config
+from src.application.common import logger
+from src.application.common.monitor_utils import _save_run_metadata
+from src.domain.enums import DatasetSize, StopReason
 from src.presentation.configuration import initialize_dependencies
 from src.presentation.entrypoints import (
     setup_benchmarking_framework,
@@ -38,6 +44,21 @@ def benchmark_runner() -> None:
     initialize_dependencies(
         run_id=run_id, benchmark_run=benchmark_run, dataset_size=dataset_size
     )
+
+    if _is_skipped(script_id):
+        logger.info(f"Experiment '{script_id}' marked skip=true in benchmarks.yml. Recording as skipped.")
+        _save_run_metadata(
+            query_id=script_id,
+            run_id=run_id,
+            achieved_iterations=0,
+            failed_iterations=0,
+            stop_reason=StopReason.FAILED,
+            ci_half_width_seconds=None,
+            ci_half_width_relative=None,
+            mean_elapsed_seconds=None,
+            median_elapsed_seconds=None,
+        )
+        return
 
     match _strip_dataset_size_suffix(script_id):
         case "bbox-filtering-duckdb":
@@ -116,6 +137,15 @@ def _strip_dataset_size_suffix(script_id: str) -> str:
         if script_id.endswith(suffix):
             return script_id[: -len(suffix)]
     return script_id
+
+
+def _is_skipped(script_id: str) -> bool:
+    with open(Config.BENCHMARK_FILE) as f:
+        cfg = yaml.safe_load(f)
+    for exp in cfg.get("experiments", []):
+        if exp.get("id") == script_id and exp.get("skip"):
+            return True
+    return False
 
 
 def _get_args() -> tuple[str, int, Optional[str], DatasetSize]:

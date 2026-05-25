@@ -159,7 +159,8 @@ result = (
     .orderBy(F.desc("building_count"))
 )
 
-cardinality = result.count()
+collected = result.collect()
+cardinality = len(collected)
 elapsed_seconds = time.perf_counter() - start_time
 
 spark.conf.set("spark.sql.adaptive.enabled", _original_aqe)
