@@ -9,6 +9,13 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 
+def _require_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None:
+        raise EnvironmentError(f"Required environment variable '{name}' is not set")
+    return value
+
+
 @dataclass(frozen=True)
 class Config:
     IS_NOTEBOOK: bool = False
@@ -17,12 +24,12 @@ class Config:
     # AZURE
     AZURE_RESOURCE_GROUP: str = "doppa"
     AZURE_RESOURCE_LOCATION: str = "norwayeast"
-    AZURE_SUBSCRIPTION_ID: str = os.getenv("AZURE_SUBSCRIPTION_ID")
-    AZURE_UAMI_RESOURCE_ID: str = os.getenv("AZURE_UAMI_RESOURCE_ID")
+    AZURE_SUBSCRIPTION_ID: str = _require_env("AZURE_SUBSCRIPTION_ID")
+    AZURE_UAMI_RESOURCE_ID: str = _require_env("AZURE_UAMI_RESOURCE_ID")
 
     AZURE_BLOB_STORAGE_HTTPS_URL: str = "https://doppabs.blob.core.windows.net"
     AZURE_BLOB_STORAGE_ACCOUNT_NAME: str = "doppabs"
-    AZURE_BLOB_STORAGE_CONNECTION_STRING: str = os.getenv(
+    AZURE_BLOB_STORAGE_CONNECTION_STRING: str = _require_env(
         "AZURE_BLOB_STORAGE_CONNECTION_STRING"
     )
     AZURE_BLOB_STORAGE_MAX_CONCURRENCY: int = 1
@@ -32,12 +39,10 @@ class Config:
     )
 
     # POSTGRESQL
-    POSTGRES_USERNAME: str = os.getenv("POSTGRES_USERNAME")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_SERVER_NAME: str = os.getenv("POSTGRES_SERVER_NAME")
-    POSTGRES_HOST: str = (
-        f"{os.getenv('POSTGRES_SERVER_NAME')}.postgres.database.azure.com"
-    )
+    POSTGRES_USERNAME: str = _require_env("POSTGRES_USERNAME")
+    POSTGRES_PASSWORD: str = _require_env("POSTGRES_PASSWORD")
+    POSTGRES_SERVER_NAME: str = _require_env("POSTGRES_SERVER_NAME")
+    POSTGRES_HOST: str = f"{POSTGRES_SERVER_NAME}.postgres.database.azure.com"
     POSTGRES_DB: str = "postgres"
     POSTGRES_PORT: int = 5432
     POSTGRES_PAGE_SIZE: int = 10_000
@@ -119,8 +124,8 @@ class Config:
     INGESTION_DELAY_SECONDS: int = 600
 
     # DATABRICKS
-    DATABRICKS_HOST: str = os.getenv("DATABRICKS_HOST")
-    DATABRICKS_TOKEN: str = os.getenv("DATABRICKS_TOKEN")
+    DATABRICKS_HOST: str = _require_env("DATABRICKS_HOST")
+    DATABRICKS_TOKEN: str = _require_env("DATABRICKS_TOKEN")
     DATABRICKS_SPARK_VERSION: str = os.getenv(
         "DATABRICKS_SPARK_VERSION", "15.4.x-scala2.12"
     )
@@ -151,4 +156,4 @@ class Config:
     )
     DATABRICKS_MUNICIPALITIES_FILE: str = "municipalities.parquet"
     MUNICIPALITIES_CONTRIBUTION_BLOB: str = "municipalities.parquet"
-    AZURE_BLOB_STORAGE_ACCOUNT_KEY: str = os.getenv("AZURE_BLOB_STORAGE_ACCOUNT_KEY")
+    AZURE_BLOB_STORAGE_ACCOUNT_KEY: str = _require_env("AZURE_BLOB_STORAGE_ACCOUNT_KEY")

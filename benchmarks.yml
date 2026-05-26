@@ -246,7 +246,6 @@ experiments:
     dataset_size: large
     runs: 3
     related_script_ids:
-      - national-scale-spatial-join-databricks-broadcast-4-nodes-large
       - national-scale-spatial-join-databricks-broadcast-16-nodes-large
 
   - id: national-scale-spatial-join-databricks-broadcast-4-nodes-small
@@ -273,9 +272,7 @@ experiments:
     memory_gb: 16
     dataset_size: large
     runs: 3
-    related_script_ids:
-      - national-scale-spatial-join-databricks-broadcast-2-nodes-large
-      - national-scale-spatial-join-databricks-broadcast-16-nodes-large
+    related_script_ids: []
 
   - id: national-scale-spatial-join-databricks-broadcast-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-broadcast-8-nodes:latest
@@ -316,7 +313,6 @@ experiments:
     runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-2-nodes-large
-      - national-scale-spatial-join-databricks-broadcast-4-nodes-large
 
   # ---- Sedona partitioned strategy ----
   - id: national-scale-spatial-join-databricks-partitioned-2-nodes-medium
@@ -337,7 +333,6 @@ experiments:
     runs: 3
     skip: failed  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
-      - national-scale-spatial-join-databricks-partitioned-4-nodes-large
       - national-scale-spatial-join-databricks-partitioned-16-nodes-large
 
   - id: national-scale-spatial-join-databricks-partitioned-4-nodes-small
@@ -366,9 +361,7 @@ experiments:
     dataset_size: large
     runs: 3
     skip: failed  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
-    related_script_ids:
-      - national-scale-spatial-join-databricks-partitioned-2-nodes-large
-      - national-scale-spatial-join-databricks-partitioned-16-nodes-large
+    related_script_ids: []
 
   - id: national-scale-spatial-join-databricks-partitioned-8-nodes-small
     image: doppaacr.azurecr.io/national-scale-spatial-join-databricks-partitioned-8-nodes:latest
@@ -412,5 +405,4 @@ experiments:
     skip: failed  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-large
-      - national-scale-spatial-join-databricks-partitioned-4-nodes-large
 
