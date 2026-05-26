@@ -128,7 +128,7 @@ collected so far). The loop stops as soon as all of these hold:
 The per-query value in `BenchmarkIteration` (for example `POINT_IN_POLYGON_LOOKUP=2500`, `KNN_SEARCH=4000`) acts as
 an **upper bound** on iterations. If iterations hit the ceiling but the 60-second window floor has not yet been met,
 the loop continues past the ceiling and logs a one-time warning, so the cost-metric window stays valid. A separate
-hard cap `Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS=5400` (90 minutes) protects against runaway runs and trips
+hard cap `Config.BENCHMARK_MAX_TIMED_WINDOW_SECONDS=21600` (6 hours) protects against runaway runs and trips
 `stop_reason="timeout"` if it fires. The bootstrap RNG is seeded deterministically from `(run_id, query_id)`
 (`blake2b` digest in `_make_bootstrap_rng`), so identical reruns reproduce the same stopping point.
 
@@ -170,7 +170,7 @@ to the elapsed-time distribution.
 | PMTiles                 | Cloud-native vector tiles        | PMTiles archive in blob storage, accessed via HTTP range reads                         |
 | WMS-style vector tiles  | Traditional vector tiles         | `doppa-vmt` web app for containers, tiles assembled on demand                          |
 
-DuckDB and PostGIS each run inside an Azure Container Instance with 3 vCPU and 8 GB RAM, so CPU and memory baselines
+DuckDB and PostGIS each run inside an Azure Container Instance with 4 vCPU and 16 GB RAM, so CPU and memory baselines
 match between the single-node engines.
 
 ### Databricks cluster lifecycle
