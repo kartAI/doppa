@@ -95,7 +95,7 @@ class Config:
     BENCHMARK_FILE: Path = ROOT_DIR / "benchmarks.yml"
     RUN_ID_LENGTH: int = 6
     DEFAULT_SAMPLE_TIMEOUT: float = 0.01
-    BENCHMARK_RUNS: int = 1
+    BENCHMARK_RUNS: int = 30
     BENCHMARK_WARMUP_ITERATIONS: int = 5
     BENCHMARK_ITERATIONS: int = 100
     BENCHMARK_METADATA_BLOB_NAME: str = "benchmark_metadata.parquet"
@@ -104,15 +104,15 @@ class Config:
     # Sequential stopping rule (bootstrapped CI on mean elapsed time)
     BENCHMARK_MIN_ITERATIONS: int = 10
     BENCHMARK_MIN_TIMED_WINDOW_SECONDS: int = 60
-    BENCHMARK_MAX_ITERATION_SECONDS: int = 4500
+    BENCHMARK_MAX_ITERATION_SECONDS: int = 3600
     BENCHMARK_MAX_TIMED_WINDOW_SECONDS: int = 6 * BENCHMARK_MAX_ITERATION_SECONDS
     BENCHMARK_TARGET_CI_HALF_WIDTH_RELATIVE: float = 0.05
     BENCHMARK_BOOTSTRAP_RESAMPLES: int = 1000
     BENCHMARK_CI_CONFIDENCE: float = 0.95
     BENCHMARK_MAX_CONSECUTIVE_FAILURES: int = 3
 
-    # Fixed-iteration cumulative wall-clock ceiling (75 min)
-    BENCHMARK_MAX_FIXED_WINDOW_SECONDS: int = 75 * 60
+    # Fixed-iteration cumulative wall-clock ceiling (300 min)
+    BENCHMARK_MAX_FIXED_WINDOW_SECONDS: int = 5 * BENCHMARK_MAX_ITERATION_SECONDS
 
     INGESTION_DELAY_SECONDS: int = 600
 
