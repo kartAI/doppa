@@ -27,6 +27,13 @@ class Config:
     AZURE_SUBSCRIPTION_ID: str = _require_env("AZURE_SUBSCRIPTION_ID")
     AZURE_UAMI_RESOURCE_ID: str = _require_env("AZURE_UAMI_RESOURCE_ID")
 
+    AZURE_LOG_ANALYTICS_WORKSPACE_ID: str = os.getenv(
+        "AZURE_LOG_ANALYTICS_WORKSPACE_ID", ""
+    )
+    AZURE_LOG_ANALYTICS_WORKSPACE_KEY: str = os.getenv(
+        "AZURE_LOG_ANALYTICS_WORKSPACE_KEY", ""
+    )
+
     AZURE_BLOB_STORAGE_HTTPS_URL: str = "https://doppabs.blob.core.windows.net"
     AZURE_BLOB_STORAGE_ACCOUNT_NAME: str = "doppabs"
     AZURE_BLOB_STORAGE_CONNECTION_STRING: str = _require_env(

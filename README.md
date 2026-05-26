@@ -606,6 +606,9 @@ POSTGRES_PASSWORD=<postgres-password>
 
 DATABRICKS_HOST=https://<workspace-id>.azuredatabricks.net
 DATABRICKS_TOKEN=<personal-access-token>
+
+AZURE_LOG_ANALYTICS_WORKSPACE_ID=<log-analytics-workspace-id>
+AZURE_LOG_ANALYTICS_WORKSPACE_KEY=<log-analytics-primary-shared-key>
 ```
 
 ### GitHub Actions
@@ -619,6 +622,7 @@ In your repository navigate to *Secrets and variables* under *Settings*. Add the
 - `POSTGRES_PASSWORD`
 - `DATABRICKS_HOST`
 - `DATABRICKS_TOKEN`
+- `AZURE_LOG_ANALYTICS_WORKSPACE_KEY`
 
 and add the following **variables**:
 
@@ -630,6 +634,7 @@ and add the following **variables**:
 - `AZURE_RESOURCE_GROUP`
 - `AZURE_SUBSCRIPTION_ID`
 - `AZURE_TENANT_ID`
+- `AZURE_LOG_ANALYTICS_WORKSPACE_ID`
 - `POSTGRES_SERVER_NAME`
 
 These values can be found under the Azure resources previously created. The workflows should now work!
