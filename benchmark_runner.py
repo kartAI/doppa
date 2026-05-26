@@ -45,14 +45,15 @@ def benchmark_runner() -> None:
         run_id=run_id, benchmark_run=benchmark_run, dataset_size=dataset_size
     )
 
-    if _is_skipped(script_id):
-        logger.info(f"Experiment '{script_id}' marked skip=true in benchmarks.yml. Recording as skipped.")
+    skip_reason = _get_skip_reason(script_id)
+    if skip_reason is not None:
+        logger.info(f"Experiment '{script_id}' skipped in benchmarks.yml (reason={skip_reason.value}).")
         _save_run_metadata(
             query_id=script_id,
             run_id=run_id,
             achieved_iterations=0,
             failed_iterations=0,
-            stop_reason=StopReason.FAILED,
+            stop_reason=skip_reason,
             ci_half_width_seconds=None,
             ci_half_width_relative=None,
             mean_elapsed_seconds=None,
@@ -139,13 +140,13 @@ def _strip_dataset_size_suffix(script_id: str) -> str:
     return script_id
 
 
-def _is_skipped(script_id: str) -> bool:
+def _get_skip_reason(script_id: str) -> StopReason | None:
     with open(Config.BENCHMARK_FILE) as f:
         cfg = yaml.safe_load(f)
     for exp in cfg.get("experiments", []):
         if exp.get("id") == script_id and exp.get("skip"):
-            return True
-    return False
+            return StopReason.from_skip(exp["skip"])
+    return None
 
 
 def _get_args() -> tuple[str, int, Optional[str], DatasetSize]:

@@ -53,7 +53,7 @@ class Config:
     MVT_TILES_PATH: Path = ROOT_DIR / "resources" / "tiles.json"
 
     # LOGGING
-    LOGGING_LEVEL: int = logging.INFO
+    LOGGING_LEVEL: int = logging.DEBUG
     LOG_FILE: Path = LOG_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
     # GEONORGE
@@ -88,7 +88,9 @@ class Config:
 
     # TEST MODE
     SETUP_COUNTY_LIMIT: int | None = (
-        int(os.getenv("SETUP_COUNTY_LIMIT")) if os.getenv("SETUP_COUNTY_LIMIT") else None
+        int(os.getenv("SETUP_COUNTY_LIMIT"))
+        if os.getenv("SETUP_COUNTY_LIMIT")
+        else None
     )
 
     # BENCHMARKING
