@@ -74,6 +74,17 @@ def _run_benchmarks(
         if experiment_id in completed_experiments:
             continue
 
+        experiment_runs = experiment.get("runs", Config.BENCHMARK_RUNS)
+        if benchmark_run > experiment_runs:
+            completed_experiments.append(experiment_id)
+            for rid in experiment.get("related_script_ids", []):
+                completed_experiments.append(str(rid))
+            logger.info(
+                "Skipping '%s' — benchmark run %s exceeds experiment runs limit %s.",
+                experiment_id, benchmark_run, experiment_runs,
+            )
+            continue
+
         current_batch += 1
 
         related_experiment_ids = experiment["related_script_ids"]
