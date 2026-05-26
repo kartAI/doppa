@@ -16,6 +16,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - point-in-polygon-lookup-postgis-small
       - point-in-polygon-lookup-local-small
@@ -25,6 +26,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - point-in-polygon-lookup-duckdb-small
       - point-in-polygon-lookup-local-small
@@ -34,6 +36,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - point-in-polygon-lookup-duckdb-small
       - point-in-polygon-lookup-postgis-small
@@ -43,6 +46,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 30
     related_script_ids:
       - point-in-polygon-lookup-postgis-large
 
@@ -51,6 +55,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 30
     related_script_ids:
       - point-in-polygon-lookup-duckdb-large
 
@@ -60,6 +65,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - knn-search-postgis-small
       - knn-search-local-small
@@ -69,6 +75,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - knn-search-duckdb-small
       - knn-search-local-small
@@ -78,6 +85,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - knn-search-duckdb-small
       - knn-search-postgis-small
@@ -87,6 +95,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 30
     related_script_ids:
       - knn-search-postgis-large
 
@@ -95,6 +104,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 30
     related_script_ids:
       - knn-search-duckdb-large
 
@@ -104,6 +114,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - bbox-filtering-postgis-small
       - bbox-filtering-local-small
@@ -113,6 +124,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - bbox-filtering-duckdb-small
       - bbox-filtering-local-small
@@ -122,6 +134,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 30
     related_script_ids:
       - bbox-filtering-duckdb-small
       - bbox-filtering-postgis-small
@@ -131,6 +144,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 30
     related_script_ids:
       - bbox-filtering-postgis-large
 
@@ -139,6 +153,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 30
     related_script_ids:
       - bbox-filtering-duckdb-large
 
@@ -155,6 +170,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-small
       - national-scale-spatial-join-databricks-partitioned-8-nodes-small
@@ -165,6 +181,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-small
       - national-scale-spatial-join-databricks-partitioned-8-nodes-small
@@ -175,6 +192,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
       - national-scale-spatial-join-databricks-partitioned-8-nodes-medium
@@ -185,6 +203,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
       - national-scale-spatial-join-databricks-partitioned-8-nodes-medium
@@ -195,6 +214,8 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
+    skip: true  # exceeds 60-min per-iteration threshold; existing data from run 2026-05-24-HBJYYT sufficient
     related_script_ids:
       - national-scale-spatial-join-postgis-large
 
@@ -203,6 +224,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     skip: true  # OOM on Azure PostgreSQL Flex Server at large scale
     related_script_ids:
       - national-scale-spatial-join-duckdb-large
@@ -213,6 +235,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-medium
 
@@ -221,6 +244,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-4-nodes-large
       - national-scale-spatial-join-databricks-broadcast-16-nodes-large
@@ -230,6 +254,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-4-nodes-small
 
@@ -238,6 +263,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-4-nodes-medium
 
@@ -246,6 +272,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-2-nodes-large
       - national-scale-spatial-join-databricks-broadcast-16-nodes-large
@@ -255,6 +282,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-8-nodes-small
       - national-scale-spatial-join-duckdb-small
@@ -265,6 +293,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-8-nodes-medium
       - national-scale-spatial-join-duckdb-medium
@@ -275,6 +304,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-8-nodes-large
 
@@ -283,6 +313,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-2-nodes-large
       - national-scale-spatial-join-databricks-broadcast-4-nodes-large
@@ -293,6 +324,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at medium scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-2-nodes-medium
@@ -302,6 +334,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-4-nodes-large
@@ -312,6 +345,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-4-nodes-small
 
@@ -320,6 +354,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at medium scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-4-nodes-medium
@@ -329,6 +364,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-large
@@ -339,6 +375,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: small
+    runs: 3
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-small
       - national-scale-spatial-join-duckdb-small
@@ -349,6 +386,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: medium
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at medium scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-medium
@@ -360,6 +398,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-broadcast-8-nodes-large
@@ -369,6 +408,7 @@ experiments:
     cpu: 4
     memory_gb: 16
     dataset_size: large
+    runs: 3
     skip: true  # executor OOM: RangeJoin spatial index exceeds Standard_D4s_v3 memory at large scale
     related_script_ids:
       - national-scale-spatial-join-databricks-partitioned-2-nodes-large
