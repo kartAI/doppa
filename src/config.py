@@ -53,7 +53,7 @@ class Config:
     MVT_TILES_PATH: Path = ROOT_DIR / "resources" / "tiles.json"
 
     # LOGGING
-    LOGGING_LEVEL: int = logging.DEBUG
+    LOGGING_LEVEL: int = logging.INFO
     LOG_FILE: Path = LOG_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
 
     # GEONORGE
