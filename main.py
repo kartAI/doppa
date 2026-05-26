@@ -193,8 +193,10 @@ def _run_container_benchmark(
         memory_gb=memory_gb,
         dataset_size=dataset_size,
     )
-    _check_container_state(container_group_name=container_group_name)
-    _delete_container_instance(container_group_name=container_group_name)
+    try:
+        _check_container_state(container_group_name=container_group_name)
+    finally:
+        _delete_container_instance(container_group_name=container_group_name)
 
 
 def _create_run_id() -> str:
@@ -377,6 +379,7 @@ def _create_container_instance(
         Config.AZURE_UAMI_RESOURCE_ID,
         "--environment-variables",
         f"AZURE_SUBSCRIPTION_ID={Config.AZURE_SUBSCRIPTION_ID}",
+        f"AZURE_UAMI_RESOURCE_ID={Config.AZURE_UAMI_RESOURCE_ID}",
         f"AZURE_BLOB_STORAGE_BENCHMARK_CONTAINER={StorageContainer.BENCHMARKS.value}",
         f"AZURE_BLOB_STORAGE_METADATA_CONTAINER={StorageContainer.METADATA.value}",
         f"POSTGRES_SERVER_NAME={Config.POSTGRES_SERVER_NAME}",
