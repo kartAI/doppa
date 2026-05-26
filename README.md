@@ -209,7 +209,7 @@ Concretely, the outer orchestrator loop is serial: it picks the next experiment 
 its peer batch in parallel, waits for the whole batch to finish, marks every member completed, and moves on. At any
 moment one batch is in flight; within that batch every member runs on its own ACI in parallel.
 
-The 41 experiments are packed into 17 batches under four constraints that the `related_script_ids` graph encodes:
+The 51 experiments are packed into 17 batches under four constraints that the `related_script_ids` graph encodes:
 
 1. **Same query type** per batch — `point-in-polygon-lookup`, `knn-search`, `bbox-filtering`, or
    `national-scale-spatial-join` never mix.
@@ -228,7 +228,7 @@ by constraint 4.
 
 ### Test matrix
 
-The matrix below is the active set of 44 experiments grouped into 18 parallel batches. Each cell lists the engines
+The matrix below is the active set of 51 experiments grouped into 17 parallel batches. Each cell lists the engines
 or Sedona configurations that launch together in the same wall-clock window; size suffixes (`-small`, `-medium`,
 `-large`) are appended to the experiment ids in `benchmarks.yml` and forwarded to each container as `--dataset-size`.
 Shapefile (`local`) only participates at the `small` tier per the thesis methodology — it represents the
@@ -245,20 +245,18 @@ laptop-workflow reference, not a scalable engine.
 The medium tier was dropped from the surviving RQ1 queries and `attribute-spatial-compound-filter` was removed
 across the board (issue #281); the 13 freed cells are reinvested in RQ2.
 
-**RQ2 — National-scale spatial join** (26 experiments, 11 batches)
+**RQ2 — National-scale spatial join** (36 experiments, 11 batches)
 
-| Engine / strategy   | `small`             | `medium`            | `large`                   |
-|---------------------|---------------------|---------------------|---------------------------|
-| Single-node         | duckdb · postgis    | duckdb · postgis    | duckdb · postgis          |
-| Sedona `broadcast`  | 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
-| Sedona `partitioned`| 4 / 8 nodes         | 2 / 4 / 8 nodes     | 2 / 4 / 8 / 12 / 16 nodes |
+| Engine / strategy   | `small`                      | `medium`                     | `large`                      |
+|---------------------|------------------------------|------------------------------|------------------------------|
+| Single-node         | duckdb · postgis             | duckdb · postgis             | duckdb · postgis             |
+| Sedona `broadcast`  | 2 / 4 / 8 / 12 / 16 nodes   | 2 / 4 / 8 / 12 / 16 nodes   | 2 / 4 / 8 / 12 / 16 nodes   |
+| Sedona `partitioned`| 2 / 4 / 8 / 12 / 16 nodes   | 2 / 4 / 8 / 12 / 16 nodes   | 2 / 4 / 8 / 12 / 16 nodes   |
 
 Within each size column, single-node and Sedona experiments are packed into the same batches up to the 200 vCPU
 Databricks budget — the table groups by strategy for readability, not by batch membership. Concrete batch
 membership is whatever `related_script_ids` in `benchmarks.yml` declares; see the batch listing below.
 
-The 2-node row is omitted at `small` for `broadcast` and `partitioned`: at ~5M polygons those configurations were
-weakly differentiated; the freed cells fund the 12-/16-node extension of the scaling curve at `large`.
 A `default` strategy (no hint; Spark's CBO picks the plan) was originally planned as an untuned baseline but was
 dropped entirely because iterations consistently timed out or failed at this workload scale, making reliable
 measurement infeasible (issue #254).
@@ -275,10 +273,10 @@ the seeded shuffle.
 | K2    | knn-search                  | large  | 0               | duckdb · postgis |
 | B1    | bbox-filtering              | small  | 0               | duckdb · postgis · local |
 | B2    | bbox-filtering              | large  | 0               | duckdb · postgis |
-| A_S1  | national-scale-spatial-join | small  | 72              | broadcast-8 · partitioned-8 · duckdb · postgis |
-| A_S2  | national-scale-spatial-join | small  | 40              | broadcast-4 · partitioned-4 |
-| A_M1  | national-scale-spatial-join | medium | 72              | broadcast-8 · partitioned-8 · duckdb · postgis |
-| A_M2  | national-scale-spatial-join | medium | 40              | broadcast-4 · partitioned-4 |
+| A_S1  | national-scale-spatial-join | small  | 200             | broadcast-2 · broadcast-8 · broadcast-12 · partitioned-2 · partitioned-8 · partitioned-12 · duckdb · postgis |
+| A_S2  | national-scale-spatial-join | small  | 176             | broadcast-4 · broadcast-16 · partitioned-4 · partitioned-16 |
+| A_M1  | national-scale-spatial-join | medium | 176             | broadcast-8 · broadcast-12 · partitioned-8 · partitioned-12 · duckdb · postgis |
+| A_M2  | national-scale-spatial-join | medium | 176             | broadcast-4 · broadcast-16 · partitioned-4 · partitioned-16 |
 | A_M3  | national-scale-spatial-join | medium | 24              | broadcast-2 · partitioned-2 |
 | A_L1  | national-scale-spatial-join | large  | 80              | broadcast-16 · broadcast-2 |
 | A_L2  | national-scale-spatial-join | large  | 80              | partitioned-16 · partitioned-2 |
