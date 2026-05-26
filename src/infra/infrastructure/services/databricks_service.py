@@ -156,6 +156,14 @@ class DatabricksService(IDatabricksService):
                 # the classic Spark planner respects.
                 "spark.databricks.photon.enabled": "false",
                 "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+                # AQE can rewrite Sedona's spatial join plans (RangeJoin,
+                # BroadcastIndexJoin) back into BroadcastNestedLoopJoin at
+                # execution time, even when the static plan is correct.
+                # Setting at cluster level ensures it's active before any
+                # notebook code runs — notebook-level spark.conf.set() may
+                # not take effect for job submissions on DBR 15.x.
+                "spark.sql.adaptive.enabled": "false",
+                "spark.sql.autoBroadcastJoinThreshold": "-1",
             },
         }
         response = requests.post(
