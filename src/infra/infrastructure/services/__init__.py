@@ -12,13 +12,10 @@ from .dataset_synthesis_service import DatasetSynthesisService
 from .file_path_service import FilePathService
 from .fkb_service import FKBService
 from .monitoring_storage_service import MonitoringStorageService
-from .mvt_service import MVTService
 from .open_street_map_file_service import OpenStreetMapFileService
 from .open_street_map_service import OpenStreetMapService
 from .release_service import ReleaseService
 from .stac_io_service import StacIOService
 from .stac_service import StacService
 from .test_dataset_service import TestDatasetService
-from .tile_api_service import TileApiService
-from .tile_service import TileService
 from .vector_service import VectorService

@@ -31,7 +31,6 @@ jobs:
       pull-requests: read
     outputs:
       orchestrator: ${{ steps.filter.outputs.orchestrator }}
-      api: ${{ steps.filter.outputs.api }}
       benchmarks: ${{ steps.filter.outputs.benchmarks }}
     steps:
       - uses: actions/checkout@v4
@@ -55,13 +54,6 @@ jobs:
               - 'benchmark_runner.py'
               - '.docker/Query.Dockerfile'
               - '.docker/Setup.Dockerfile'
-              - 'requirements.txt'
-              - 'docker-compose.yml'
-            api:
-              - 'src/**'
-              - '!src/presentation/entrypoints/**'
-              - '!src/presentation/databricks/**'
-              - '.docker/Api.Dockerfile'
               - 'requirements.txt'
               - 'docker-compose.yml'
 
@@ -108,24 +100,6 @@ jobs:
 
       - name: Build Container Orchestrator from docker-compose
         run: docker compose build container-orchestrator
-
-  build-api-image:
-    name: Build VMT API Server
-    runs-on: ubuntu-latest
-    needs:
-      - compile
-      - detect-changes
-    if: needs.detect-changes.outputs.api == 'true'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build VMT API Server from docker-compose
-        run: docker compose build vmt-api-server
 
   build-benchmark-images:
     name: Build ${{ matrix.display_name }}

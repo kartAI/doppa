@@ -2,7 +2,7 @@
 
 doppa is a reproducible benchmarking framework for evaluating traditional geospatial query stacks
 (PostGIS, shapefiles) against cloud-native geospatial (CNG) alternatives (DuckDB over GeoParquet in
-blob storage, PMTiles/MVT vector tiles, and Apache Sedona on Databricks) across a range of real-world
+blob storage and Apache Sedona on Databricks) across a range of real-world
 spatial query patterns: point-in-polygon lookups, k-nearest-neighbour search, bounding-box filtering,
 and a national-scale spatial join.
 
@@ -13,7 +13,7 @@ measurable and reproducible on identical datasets and hardware.
 
 <div align="center">
 
-[![Push containers to Azure Container Registry](https://github.com/kartAI/doppa-data/actions/workflows/push-containers-to-acr.yml/badge.svg)](https://github.com/kartAI/doppa-data/actions/workflows/push-containers-to-acr.yml) [![Publish APIs](https://github.com/kartAI/doppa-data/actions/workflows/publish-api.yml/badge.svg)](https://github.com/kartAI/doppa-data/actions/workflows/publish-api.yml)
+[![Push containers to Azure Container Registry](https://github.com/kartAI/doppa-data/actions/workflows/push-containers-to-acr.yml/badge.svg)](https://github.com/kartAI/doppa-data/actions/workflows/push-containers-to-acr.yml)
 
 </div>
 
@@ -60,7 +60,7 @@ format internals to client-observed cost is measured end to end.
 **Cloud-native vector formats vs. traditional formats on cloud storage.** Empirical comparisons in the literature
 (Holmes 2023; Flatgeobuf 2024) measure write times and file sizes on local disk and do not place cloud-native and
 traditional formats side by side on cloud storage. doppa benchmarks GeoParquet over Azure Blob Storage (via DuckDB)
-against PostGIS on Azure Database for PostgreSQL, and PMTiles against WMS-style vector tiles, across the active
+against PostGIS on Azure Database for PostgreSQL, across the active
 catalog of query patterns: point-in-polygon lookups, k-nearest-neighbour search, bounding-box filtering, and a
 national-scale spatial join. The local-Shapefile entrypoints sit on the side as a laptop-workflow reference, with the
 Shapefile downloaded ahead of the timed scope to emulate that workflow rather than to bench the format on cloud
@@ -167,8 +167,6 @@ to the elapsed-time distribution.
 | PostGIS                 | Single-node, managed service     | Azure Database for PostgreSQL Flexible Server                                          |
 | GeoPandas + Shapefile   | Single-node, local-disk baseline | Shapefile pre-downloaded to the container before the timed scope                       |
 | Apache Sedona           | Distributed                      | Azure Databricks, 2 / 4 / 8 / 12 / 16 `Standard_D4s_v3` workers, reading GeoParquet via ABFS |
-| PMTiles                 | Cloud-native vector tiles        | PMTiles archive in blob storage, accessed via HTTP range reads                         |
-| WMS-style vector tiles  | Traditional vector tiles         | `doppa-vmt` web app for containers, tiles assembled on demand                          |
 
 DuckDB and PostGIS each run inside an Azure Container Instance with 4 vCPU and 16 GB RAM, so CPU and memory baselines
 match between the single-node engines.
@@ -348,7 +346,7 @@ so.
 #### Resource naming
 
 The resource names used throughout this section (`doppa`, `doppabs`, `doppaacr`, `doppa-uami`,
-`doppa-db`, `doppa-vmt`, `doppa-databricks`) are baked into source and configuration. Keep them
+`doppa-db`, `doppa-databricks`) are baked into source and configuration. Keep them
 as-is for the simplest setup; this is also what the thesis deployment uses, so reproducing the
 published results requires these exact names.
 
@@ -356,9 +354,8 @@ If you need to rename a resource, the following references must be updated toget
 
 | Location                            | What is hardcoded                                                              |
 |-------------------------------------|--------------------------------------------------------------------------------|
-| `src/config.py`                     | Default values for resource group, blob URL/account, VMT URL, STAC container   |
+| `src/config.py`                     | Default values for resource group, blob URL/account, STAC container            |
 | `benchmarks.yml`                    | ACR image references (`doppaacr.azurecr.io/<image>:latest`) for every benchmark |
-| `.github/workflows/publish-api.yml` | `webapp_name: doppa-vmt`                                                       |
 
 `src/config.py` defaults can also be overridden via the corresponding environment variables
 (see [Local development](#local-development) and [GitHub Actions](#github-actions)) without
@@ -463,34 +460,6 @@ same setting change the following:
 - `shared_buffers`: `2097152`
 - `effective_cache_size`: `6291456`
 - `work_mem`: `65536`
-
-#### Web app for containers
-
-Create
-a [web app for containers](https://portal.azure.com/#view/Microsoft_Azure_Marketplace/GalleryItemDetailsBladeNopdl/id/Microsoft.AppSvcLinux/selectionMode~/false/resourceGroupId//resourceGroupLocation//dontDiscardJourney~/false/selectedMenuId/home/launchingContext~/%7B%22galleryItemId%22%3A%22Microsoft.AppSvcLinux%22%2C%22source%22%3A%5B%22GalleryFeaturedMenuItemPart%22%2C%22VirtualizedTileDetails%22%5D%2C%22menuItemId%22%3A%22home%22%2C%22subMenuItemId%22%3A%22Search%20results%22%2C%22telemetryId%22%3A%22135c4e97-6a92-446e-aa0a-3f2201ddfdb1%22%7D/searchTelemetryId/c154ee0a-06d6-49e4-a17f-3820937e6335)
-The process is the same for each of the following API servers:
-
-- `doppa-vmt`
-
-Under *Basics*:
-
-- Resource group: `doppa`
-- Name: `<name-from-list-above>`
-- Publish: `Container`
-- Operating system: `Linux`
-- Pricing plan: `Premium V4 P0V4`
-
-Under *Container*:
-
-- Image source: `Azure Container Registry`
-- Registry: `doppaacr`
-- Authentication: `Managed identity`
-- Identity: `doppa-uami`
-- Image: `<select the image that matches with the name>`
-- Tag: `latest`
-- Startup command `uvicorn src.presentation.endpoints.<API server script>:app --host 0.0.0.0 --port 8000`
-
-Navigate to *Review + create* and create the resource. Repeat this process for each name in the list.
 
 #### Databricks
 
