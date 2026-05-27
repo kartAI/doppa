@@ -215,7 +215,6 @@ monitor_logs/**/*.csv
 monitor_logs/**/*.parquet
 resources/*
 !resources/.gitkeep
-!resources/*.json
 
 # Profiling
 profiling/**.json
