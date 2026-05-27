@@ -217,14 +217,3 @@ services:
       dockerfile: .docker/Query.Dockerfile
     image: national-scale-spatial-join-databricks-partitioned-16-nodes:latest
     command: python benchmark_runner.py --script-id national-scale-spatial-join-databricks-partitioned-16-nodes --benchmark-run 1 --run-id ABCDEF
-
-  vmt-api-server:
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: .docker/Api.Dockerfile
-    ports:
-      - "8000:8000"
-    image: vmt-api-server:latest
-    command: uvicorn src.presentation.endpoints.tile_server:app --host 0.0.0.0 --port 8000
