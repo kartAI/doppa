@@ -1,5 +1,4 @@
 ﻿from io import BytesIO
-from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
@@ -50,18 +49,3 @@ class BytesService(IBytesService):
         buffer.seek(0)
         return buffer.read()
 
-    @staticmethod
-    def convert_pmtiles_to_bytes(path: Path) -> bytes:
-        if not path.exists():
-            logger.error("PMTiles file not found: %s", path)
-            raise FileNotFoundError(f"PMTiles file not found: {path}")
-
-        try:
-            with path.open("rb") as f:
-                data = f.read()
-                if not data:
-                    logger.warning("PMTiles file %s is empty.", path)
-                return data
-        except Exception as e:
-            logger.exception("Failed to read PMTiles file %s: %s", path, e)
-            raise
