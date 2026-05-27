@@ -4,14 +4,14 @@ Reproducible benchmarking framework comparing cloud-native (DuckDB + GeoParquet,
 
 ## Stack
 
-Python, DuckDB (spatial), PostGIS on Azure Database for PostgreSQL, Apache Sedona on Databricks, Azure Blob Storage, Azure Container Instances, `dependency_injector`, FastAPI, PMTiles/MVT. See `requirements.txt` for versions.
+Python, DuckDB (spatial), PostGIS on Azure Database for PostgreSQL, Apache Sedona on Databricks, Azure Blob Storage, Azure Container Instances, `dependency_injector`. See `requirements.txt` for versions.
 
 ## Layout (Clean Architecture)
 
 - `src/domain/` — enums only; no dependencies on other layers.
 - `src/application/` — `contracts/` (service interfaces), `dtos/`, `common/` (logger, monitor).
 - `src/infra/` — `infrastructure/services/` (contract impls), `infrastructure/containers.py` (DI wiring), `persistence/context/` (DuckDB, Postgres, Blob clients).
-- `src/presentation/` — `entrypoints/` (one file per benchmark), `configuration/app_config.py` (`initialize_dependencies`), `databricks/` (notebook script), `endpoints/tile_server.py` (FastAPI VMT server).
+- `src/presentation/` — `entrypoints/` (one file per benchmark), `configuration/app_config.py` (`initialize_dependencies`), `databricks/` (notebook script).
 - `main.py` — outside-ACI orchestrator. Reads `benchmarks.yml`, launches one ACI per experiment.
 - `benchmark_runner.py` — in-container dispatcher. Matches `--script-id` to a function in `src/presentation/entrypoints/`.
 - `benchmarks.yml` — experiment manifest. Each entry: `id`, `image`, `cpu`, `memory_gb`, `related_script_ids`.
