@@ -4,7 +4,7 @@ from pystac import StacIO
 from src.infra.infrastructure.services import (
     BlobStorageService, OpenStreetMapService, OpenStreetMapFileService, FilePathService, ReleaseService, BytesService,
     CountyService, VectorService, StacService, StacIOService, FKBService, ConflationService,
-    TestDatasetService, DatasetSynthesisService, MonitoringStorageService, MVTService, TileApiService, TileService,
+    TestDatasetService, DatasetSynthesisService, MonitoringStorageService,
     AzureCostService, BenchmarkConfigurationService, AzureMetricService, AzurePricingService, BenchmarkService,
     DatabricksService
 )
@@ -96,19 +96,6 @@ class Containers(containers.DeclarativeContainer):
     benchmark_service = providers.Singleton(
         BenchmarkService,
         duckdb_context=duckdb_context
-    )
-
-    mvt_service = providers.Singleton(
-        MVTService,
-        db_context=postgres_context
-    )
-
-    tile_api_service = providers.Singleton(
-        TileApiService
-    )
-
-    tile_service = providers.Singleton(
-        TileService
     )
 
     benchmark_configuration_service = providers.Singleton(
