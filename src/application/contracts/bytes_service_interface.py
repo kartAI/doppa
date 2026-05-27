@@ -1,5 +1,4 @@
 ﻿from abc import ABC, abstractmethod
-from pathlib import Path
 
 import pandas as pd
 import geopandas as gpd
@@ -62,13 +61,3 @@ class IBytesService(ABC):
         """
         raise NotImplementedError
 
-    @staticmethod
-    @abstractmethod
-    def convert_pmtiles_to_bytes(path: Path) -> bytes:
-        """
-        Converts a PMTiles file to a byte array.
-        :param path: Path to the PMTiles file.
-        :return: Byte array representation of the PMTiles file.
-        :rtype: bytes
-        """
-        raise NotImplementedError
