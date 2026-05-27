@@ -40,7 +40,6 @@ class Config:
         "AZURE_BLOB_STORAGE_CONNECTION_STRING"
     )
     AZURE_BLOB_STORAGE_MAX_CONCURRENCY: int = 1
-    AZURE_VMT_SERVER_URL: str = "https://doppa-vmt.azurewebsites.net"
     AZURE_METRICS_REGIONAL_ENDPOINT: str = (
         f"https://{AZURE_RESOURCE_LOCATION}.metrics.monitor.azure.com"
     )
@@ -59,11 +58,6 @@ class Config:
     LOG_DIR: Path = ROOT_DIR / f"logs"
     BUILDINGS_SHAPEFILE: Path = ROOT_DIR / "resources" / "buildings.shp"
     BUILDINGS_PARQUET_FILE: Path = ROOT_DIR / "resources" / "buildings.parquet"
-    BUILDINGS_GEOJSONL_FILE: Path = ROOT_DIR / "resources" / "buildings.geojsonl"
-    BUILDINGS_PMTILES_FILE: Path = ROOT_DIR / "resources" / "buildings.pmtiles"
-    BUILDINGS_MVT_DIR: Path = ROOT_DIR / "resources" / "buildings_mvt"
-    MVT_TILES_PATH: Path = ROOT_DIR / "resources" / "tiles.json"
-
     # LOGGING
     LOGGING_LEVEL: int = logging.INFO
     LOG_FILE: Path = LOG_DIR / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
@@ -84,8 +78,6 @@ class Config:
     KNN_SEARCH_K: int = 10
     # NTNU Hovedbygget (Main Building) — large footprint guaranteed in the buildings dataset
     POINT_IN_POLYGON_PROBE_WGS84: tuple[float, float] = (10.4044, 63.4187)
-    VECTOR_TILES_100K_TOTAL_REQUESTS: int = 100_000
-
     # STAC
     STAC_LICENSE = "CC-BY-4.0"
     STAC_STORAGE_CONTAINER = "https://doppabs.blob.core.windows.net/stac"
