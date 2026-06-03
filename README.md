@@ -17,8 +17,28 @@ measurable and reproducible on identical datasets and hardware.
 
 </div>
 
+## Related repositories
+
+doppa is the middle stage of a three-repository pipeline built for the thesis (TBA4925, NTNU Geomatics).
+The repos depend on each other end to end: datasets are published upstream, benchmarked here, and analysed
+downstream.
+
+```
+doppa-data-contribution  ──►  doppa  ──►  doppa-analytics
+   publish datasets          (this repo)    read results, build
+   to blob storage           run engines    thesis figures/tables
+                             write metrics
+```
+
+| Repository | Role | Link |
+|------------|------|------|
+| **doppa-data-contribution** | Downloads OSM, FKB, Microsoft Buildings, and municipality boundaries, normalizes them to the shared GeoParquet schema, and publishes them to the `contributions` blob container that this framework reads | [kartAI/doppa-data-contribution](https://github.com/kartAI/doppa-data-contribution) |
+| **doppa** | Reproducible benchmarking framework. Consumes the published datasets, runs the spatial-query benchmarks on Azure, and writes per-iteration samples and cost rows back to blob storage *(this repo)* | — |
+| **doppa-analytics** | Reads the benchmark result Parquet from blob storage, runs the statistical tests (Wilcoxon, bootstrapped CIs, Vargha–Delaney Â12), and generates the thesis figures and LaTeX tables | [kartAI/doppa-analytics](https://github.com/kartAI/doppa-analytics) |
+
 ## Table of contents
 
+- [Related repositories](#related-repositories)
 - [Research gaps addressed](#research-gaps-addressed)
 - [Benchmarking framework](#benchmarking-framework)
     - [Measurement loop](#measurement-loop)
