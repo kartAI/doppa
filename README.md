@@ -40,6 +40,10 @@ doppa-data-contribution  ──►  doppa  ──►  doppa-analytics
 
 - [Related repositories](#related-repositories)
 - [Research gaps addressed](#research-gaps-addressed)
+- [Results](#results)
+    - [RQ1 — Single-machine queries](#rq1--single-machine-queries)
+    - [RQ2 — National-scale spatial join](#rq2--national-scale-spatial-join)
+    - [RQ3 — Consistency of winners](#rq3--consistency-of-winners)
 - [Benchmarking framework](#benchmarking-framework)
     - [Measurement loop](#measurement-loop)
     - [Engines under test](#engines-under-test)
@@ -104,6 +108,74 @@ The methodological gap noted in the thesis — the absence of effect-size report
 spatial benchmarks — is handled in downstream analysis. The framework's contribution is to persist every iteration's
 raw sample so distributions, Wilcoxon rank-sum tests, bootstrapped confidence intervals, and Vargha–Delaney Â12 effect
 sizes can be computed without re-running the benchmark.
+
+## Results
+
+Headline findings from the accompanying thesis (chapter 6). Run-time is summarized by the **minimum
+estimator**, transferred bytes by the **median**, each with a 95% bootstrap confidence interval. The
+Shapefile path was run at the small tier only (laptop-workflow reference), and single-node DuckDB and
+PostGIS did not complete the large national-scale join. Full statistics and per-cell tables live in the
+thesis.
+
+### RQ1 — Single-machine queries
+
+> *How does GeoParquet + DuckDB compare to PostGIS and Shapefile in time, network transfer, and cost
+> across point-in-polygon, kNN, and bounding-box queries?*
+
+**PostGIS won wall-clock time in every single-machine cell** — from ~1.5 ms (point-in-polygon, kNN,
+small) to 38.9 ms (bbox, large). DuckDB over object storage ran orders of magnitude slower (1.3 s → 29.9 s
+for point-in-polygon, small → large), and the local Shapefile path was pathological on kNN (47.8 s vs
+DuckDB's 0.75 s). On **network transfer**, Shapefile reads from disk (≈0 B), DuckDB pulled a near-constant
+payload (~93 KB small, ~12 KB large) regardless of result size, while PostGIS stayed low except on the bbox
+filter (~1.9 MB, large). On **cost**, compute dominated and no single engine won: DuckDB was cheapest for
+bbox and kNN at the small tier, Shapefile for the small point-in-polygon, and PostGIS across the large cells.
+
+<div align="center">
+  <img src=".github/docs/img/results-single-machine-wall-clock-time.png" width="85%" />
+  <br/>
+  <em>Wall-clock time per single-machine configuration (log axis), pattern × tier grid. PostGIS is fastest
+  everywhere; DuckDB trails by orders of magnitude.</em>
+</div>
+
+### RQ2 — National-scale spatial join
+
+> *How do Sedona broadcast- and partitioned-join strategies compare to single-node PostGIS and DuckDB in
+> time, scaling, transfer, and cost across small/medium/large tiers?*
+
+**The broadcast strategy dominated; the partitioned strategy did not scale.** Partitioned ran ~2 orders of
+magnitude slower (2540–2760 s vs broadcast's 14–32 s) and ~30× costlier at the small tier, and failed with
+executor OOM at the medium and large tiers. Against the single-node baselines, the crossover is tier-dependent:
+at the **small** tier PostGIS (13.4 s) stayed fastest — broadcast approached but did not beat it within 2–16
+workers (13.7 s at 16); at the **medium** tier broadcast beat the best single-node engine (DuckDB ~1386 s) at
+every worker count (203 s → 38 s); at the **large** tier neither single-node engine completed, so only Sedona
+finished. Speedup was sublinear and improved with scale — at 16 workers ≈2.3× (small), 5.3× (medium), 6.5×
+(large) against an ideal of 8×.
+
+<div align="center">
+  <img src=".github/docs/img/results-distributed-wall-clock-vs-workers.png" width="90%" />
+  <br/>
+  <em>Distributed broadcast join vs single-node baselines (log axis). The worker count where a curve crosses a
+  dashed baseline is the break-even point; the partitioned strategy (green) never gets competitive.</em>
+</div>
+
+### RQ3 — Consistency of winners
+
+> *Does the best format-and-engine combination stay consistent, or do winners differ across patterns and
+> dimensions?*
+
+**Winners are not consistent — they flip across both query pattern and outcome dimension.** PostGIS held the
+time crown on every single-machine cell but lost it to Apache Sedona on the medium and large join. The cost
+winner was mixed (DuckDB, GeoPandas, PostGIS, and Sedona each won at least one cell). Geometric-mean slowdown
+vs the best configuration confirms the spread: on **time**, Sedona 1.01 and PostGIS 1.66 sit near the floor
+while Shapefile (226×) and DuckDB (398×) trail badly; on **cost** all four fall in a narrow band (PostGIS 1.70
+best → Shapefile 2.76). No configuration is best across the board.
+
+<div align="center">
+  <img src=".github/docs/img/results-winners-matrix.png" width="70%" />
+  <br/>
+  <em>Winning configuration per workload × tier on time and cost. Color flips down the rows and between
+  columns — no single engine wins everywhere.</em>
+</div>
 
 ## Benchmarking framework
 
